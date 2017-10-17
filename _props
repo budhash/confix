@@ -1,0 +1,191 @@
+__PROPS_DEFAULT=conf
+__PROPS_EXT=ini
+__PROPS_ROOT=~/props.ini
+__PROPS_ROOT_ABS=
+__PROPS_ROOT_BASE=
+__PROPS_TMP=./.propsTmp
+__PROPS_PARAMS=./.propsParams
+__PROPS_ALL=./.propsAll
+
+#__ENV=dev
+#__PROPS_PRIVATE=~/private.ini
+__CONFDIR=conf
+__PROPS_CONFDIR=conf
+__INSTANCE_CREATED=false
+
+function _props.createInstance(){
+	[[ -z "$1" ]] && __PROPS_ROOT=~/props.ini || __PROPS_ROOT=$1
+	
+	#load root properties
+	__PROPS_ROOT_ABS=$(_props.__getAbsPath "$__PROPS_ROOT")
+	__PROPS_ROOT_BASE=$( dirname "$__PROPS_ROOT_ABS")
+	_props.__include "$__PROPS_ROOT_ABS"
+	
+	#load private properties
+	[ -z "${__PROPS_PRIVATE+zzz}" ] && __PROPS_PRIVATE=$__PROPS_ROOT_BASE/private.$__PROPS_EXT
+	_props.__include "$__PROPS_PRIVATE" "$__PROPS_ROOT_BASE"
+	
+	#clearing consolidated property file
+	[ -f $__PROPS_ALL ] && rm $__PROPS_ALL	
+	[ -f $__PROPS_PARAMS ] && rm $__PROPS_PARAMS
+	
+	__INSTANCE_CREATED=true
+}
+
+function _props.overrideEnv(){
+	__ENV=$1
+}
+
+function _props.load(){
+	[[ -z "$1" ]] && { _props.__error "expected BASE_FOLDER"; return; } || local __proj_basedir=$1
+	[[ -z "$2" ]] && { _props.__error "expected PROJECT_NAME"; return; } || local _script_name=$2
+	shift 2
+	
+	if [ "$__INSTANCE_CREATED" == "false" ]; then
+		_props.__error "error loading properties. call _props.createInstance(BASE_FOLDER,PROJECT_NAME,[ROOT_INI])" 
+		return
+	fi
+	__PROPS_CONFDIR=$__proj_basedir/$__CONFDIR
+	
+	#load project specific properties
+	_props.__include "$__PROPS_DEFAULT.$__PROPS_EXT" "$__PROPS_CONFDIR"
+	
+	#load script specific properties
+	_props.__include "$_script_name.$__PROPS_EXT" "$__PROPS_CONFDIR"
+	
+	#load private properties
+	#local __propsProjPrivate=$(_props.__getAbsPath "private.$__PROPS_EXT" "$__PROPS_CONFDIR")
+	#[ -f $__propsProjPrivate ] && _props.__include $__propsProjPrivate
+	
+	#load project+env specific properties
+	[ -z "${__ENV+zzz}" ] && __ENV=dev
+	__ENV=$(_props.__lowercase $__ENV)
+	local __propsProjEnv=$(_props.__getAbsPath "$_script_name.$__ENV.$__PROPS_EXT" "$__PROPS_CONFDIR")
+	[ -f $__propsProjEnv ] && _props.__include $__propsProjEnv
+
+	#load all additional property files
+	for extProp in "$@"; do 
+		_props.__include "$extProp.$__PROPS_EXT" "$__PROPS_CONFDIR" 
+		local __propsExtjEnv=$(_props.__getAbsPath "$extProp.$__ENV.$__PROPS_EXT" "$__PROPS_CONFDIR")
+		[ -f $__propsExtjEnv ] && _props.__include $__propsExtjEnv
+	done
+
+
+}
+
+function _props.__include(){
+	[[ -z "$1" ]] && return	|| local _absPath=$(_props.__getAbsPath $1 $2)
+	#[ -f $_absPath ] && { echo "[debug]: loading properties - $_absPath"; source $_absPath; }  || { echo "[warn]: properties not found : $_absPath" 1>&2; }
+	if [ -f $_absPath ]; then
+		[ -f $__PROPS_TMP ] && rm $__PROPS_TMP
+		echo "[debug]: loading properties - $_absPath"
+		
+		#ignore all # / -D /-J
+		grep -v '^#' $_absPath | grep -v '^-J' | grep -v '^-D' > $__PROPS_TMP
+		cat  $__PROPS_TMP >> $__PROPS_ALL
+		source $__PROPS_TMP
+		rm $__PROPS_TMP
+		
+		#collect all -D / -J params
+		grep -v '^#' $_absPath | grep '^-J' >> $__PROPS_PARAMS
+		grep -v '^#' $_absPath | grep '^-D' >> $__PROPS_PARAMS
+
+		#source $_absPath;
+	else	
+		echo "[warn]: properties not found : $_absPath" 1>&2;
+	fi	
+}
+
+function _props.getAdditionalParams(){
+	echo `cat $__PROPS_PARAMS | tr "\\n" " "`
+}
+
+function _props.overrideAdditionalParams(){
+	[[ -z "$1" ]] && return	|| local _param=$1
+	#[[ -z "$2" ]] && return	|| local _newValue=$2
+	
+	local _key=$(echo $_param | awk -F= '{print $1}')
+	local _newValue=$(echo $_param | awk -F= '{print $2}')
+	local _keyOnly=${_key:2}
+ 
+	grep -v "$_keyOnly=" $__PROPS_PARAMS >> $__PROPS_PARAMS.tmp
+	echo $_key=$_newValue >> $__PROPS_PARAMS.tmp
+	mv $__PROPS_PARAMS.tmp $__PROPS_PARAMS
+	#local _value=$(echo $_param | awk -F= '{print $2}')
+	#echo  sed -i '' "s#^\($_key\s*=\s*\).*\$#\1$_newValue#" $__PROPS_PARAMS
+	#sed -i '' "s#^\($_key\s*=\s*\).*\$#\1$_newValue#" $__PROPS_PARAMS
+}
+
+function _props.getEnv(){
+	echo $__ENV
+}
+
+function _props.decrypt(){
+	echo $(echo $(eval echo \$$1) | openssl enc -base64 -d -aes-256-cbc -nosalt -pass pass:${_secret})
+}
+
+DB_PASSWORD=$(eval echo ${DB_PASSWORD} | base64 --decode)
+
+function _props.__getAbsPath(){
+	local _path=$1
+	[[ -z "$2" ]] && local _baseDir=$PWD || local _baseDir=$2
+	
+	local _thePath
+	local _sep=""
+	
+	if [[ "$_path" =~ ^~ ]];then
+		eval _path=$_path
+	fi	
+	
+	if [[ ! "$_path" =~ ^/ ]];then
+	    _thePath="$_baseDir/$_path"
+		#_sep="/"
+	else
+	    _thePath="$_path"
+	fi
+	
+	echo "$_sep$_thePath"|(
+	  IFS=/
+	  read -a parr
+	  declare -a outp
+	  for i in "${parr[@]}";do
+	    case "$i" in
+	    ''|.) continue ;;
+	    ..)
+	      len=${#outp[@]}
+	      if ((len==0));then
+	        continue
+	      else
+	        unset outp[$((len-1))] 
+	      fi
+	      ;;
+	    *)
+	      len=${#outp[@]}
+	      outp[$len]="$i"
+	      ;;
+	    esac
+	  done
+	  echo /"${outp[*]}"
+	)
+}
+
+function _props.__lowercase() { echo "$@" | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/"; }
+function _props.__error() { echo "[error]: $@" 1>&2; }
+
+#function _props.__getAbsPath() {
+#    if [[ -d "$1" ]]
+#    then
+#        pushd "$1" >/dev/null
+#        pwd
+#        popd >/dev/null
+#    elif [[ -e $1 ]]
+#    then
+#        pushd "$(dirname "$1")" >/dev/null
+#        echo "$(pwd)/$(basename "$1")"
+#        popd >/dev/null
+#    else
+#        echo "$1" does not exist! >&2
+#        return 127
+#    fi
+#}
+
