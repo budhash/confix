@@ -1,0 +1,50 @@
+##
+# @info     logging functions
+##
+function _common.log() { echo "[info]: $@" 1>&2; }
+function _common.log_linebreak() { echo "" 1>&2; }
+function _common.warn() { echo "[warn]: $@" 1>&2; }
+function _common.error() { echo "[error]: $@" 1>&2; }
+function _common.error_exit() { echo "[error]: $@" 1>&2; exit 1;}
+function _common.debug () { [ "$__DEBUG" == "TRUE" ] && echo "[debug]: $@" 1>&2; }
+
+##
+# @info     string functions
+##
+function _common.trimall() { echo $(echo "$@" | tr -d '[ \t]' | tr 'A-Z' 'a-z'); }
+function _common.lowercase() { echo "$@" | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/"; }
+function _common.uppercase() { echo "$@" | sed "y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/"; }
+
+function _common.getAbsPath(){
+	local _path=$1
+	local thePath
+	if [[ ! "$_path" =~ ^/ ]];then
+	    thePath="$PWD/$_path"
+	else
+	    thePath="$_path"
+	fi
+	echo "$thePath"|(
+	  IFS=/
+	  read -a parr
+	  declare -a outp
+	  for i in "${parr[@]}";do
+	    case "$i" in
+	    ''|.) continue ;;
+	    ..)
+	      len=${#outp[@]}
+	      if ((len==0));then
+	        continue
+	      else
+	        unset outp[$((len-1))] 
+	      fi
+	      ;;
+	    *)
+	      len=${#outp[@]}
+	      outp[$len]="$i"
+	      ;;
+	    esac
+	  done
+	  echo /"${outp[*]}"
+	)
+}
+
