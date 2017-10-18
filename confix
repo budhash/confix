@@ -1,39 +1,109 @@
-readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __DEBUG=FALSE
+#!/bin/bash
+# --------------------------------------------------------------------
+#
+# confix - pure bash script to modify/update configuration files
+#
+# --------------------------------------------------------------------
+# AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
+# VERSION:  0.1
+# --------------------------------------------------------------------
+# DESCRIPTION:
+#
+# pure bash script to modify/update configuration files 
+# --------------------------------------------------------------------
+# LICENSE:
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+# --------------------------------------------------------------------
+# USAGE:
+#
+# Type "confix -h" for usage guidelines.
+# --------------------------------------------------------------------
 
-function _join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+## begin ## meta-data
+readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
+readonly __APPVERSION=0.1
+readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
+readonly __SUPPORTED_ARCH=(x86_64 x86)
+readonly __DEBUG=FALSE
+## end ## meta-data
+
+##
+# @info     logging functions
+##
+function _common.log() { echo "[info]: $@" 1>&2; }
+function _common.log_linebreak() { echo "" 1>&2; }
+function _common.warn() { echo "[warn]: $@" 1>&2; }
+function _common.error() { echo "[error]: $@" 1>&2; }
+function _common.error_exit() { echo "[error]: $@" 1>&2; exit 1;}
+function _common.debug () { [ "$__DEBUG" == "TRUE" ] && echo "[debug]: $@" 1>&2; }
+
+##
+# @info     string functions
+##
+function _common.trimall() { echo $(echo "$@" | tr -d '[ \t]' | tr 'A-Z' 'a-z'); }
+function _common.lowercase() { echo "$@" | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/"; }
+function _common.uppercase() { echo "$@" | sed "y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/"; }
+function _common.join_by() { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
 
 function __bootstrap(){	
     readonly __BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	readonly __BASEDIRNAME=$( basename "$__BASEDIR" )
-    readonly __BASECFG=base.ini
 	readonly __TIMESTAMP=$(date +%m-%d-%Y_%H-%M_%S)
-	readonly __RESULTDIR=$__BASEDIR/results
-	__include "${__BASEDIR}/_common"
-	__include "${__BASEDIR}/_props"
-	
+
 	if sed -c 2>&1 | grep -q invalid; then
 	    __SED=sed
 	else
 	    __SED="sed -c "
 	fi
-	#_common.debug $__SED
 }
 
-function __include(){
-	[[ -z "$1" ]] && return	|| local _lib=$1
-	
-	local _pwd=$PWD
-    cd "$(dirname "$_lib")"
-    local _link=$(readlink "$(basename "$_lib")")
-    while [ "$_link" ]; do
-      cd "$(dirname "$_link")"
-      _link=$(readlink "$(basename "$_lib")")
-    done
-    local _absPath="$PWD/$(basename "$_lib")"
-    cd "$_pwd"
+function _usage()
+{
+    if [ "$1" != "error" ]; then
+        echo "$__APPNAME $__APPVERSION, pure bash script to modify/update configuration files"
+    fi
+    cat << EOF
+Usage: $__APPNAME [OPTIONS]... [commands1] [commands2]
+Options:
+-------
+    -h                          
+        show this message
+        
+    -f <file_name>           
+    	name of the file that needs to be modified
+        
+    -s <separator_character>            
+        default value is "="
+        
+    -c <comment_character>                            
+        default value is "#"
+        
+Examples:
+--------
+    -add a configuration
+    $__APPNAME -s':' -f cassandra.yaml ">gc_warn_threshold_in_ms"
+    
+    -remove/comment a configuration key
+    $__APPNAME -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
 
-	[ -f $_absPath ] && source $_absPath || { echo "[error]: library not found : $_absPath" 1>&2; exit 1;}
+    -update a configuration
+    $__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2000"
+    
+EOF
+    if [ "$1" == "error" ]; then
+        exit 1
+    fi
 }
 
 function _main(){
@@ -58,30 +128,12 @@ function _main(){
 	shift $((OPTIND-1))
     while test ${#} -gt 0
 	do
-	  _mod_config "$1"
+	  _change_config "$1"
 	  shift
 	done
-	
-    #
-
-	#if [ "$#" -lt 1 ] ; then
-	#	_common.error_exit "illegal number of parameters"
-	#else
-	#	local _key="$1"
-	#	shift 1
-	#fi
-	
-	#local _val="$1"
-	#_common.debug "separator->$__sep_char | comment->$__comment_char | add_if_missing->$__add_if_missing | __file_name-> $__file_name | key->$_key | value->$_val" 
-	
-	#if [ "$_remove_key" == "true" ]; then
-	#	_remove_config "$_key"
-	#else
-	#	_add_config "$_key" "$_val"
-	#fi
 }
 
-function _mod_config(){
+function _change_config(){
 	local _cmd="$@"
 
 	if [[ $_cmd == ">"* ]]; then
@@ -97,32 +149,24 @@ function _update_config(){
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]}
 	_cmd_param=( "${_cmd_param[@]:1}" ) 
-    local _val=`_join_by '=' ${_cmd_param[@]}`
-    echo _update_config $_key $_val
+    local _val=$(_common.join_by '=' ${_cmd_param[@]})
+    if [[ "$_val" ==  *\/* ]] ; then
+	  $__SED -i "s#\($_key *: *\).*#\1$_val#" $__file_name
+	else
+	  $__SED -i "s/\($_key *: *\).*/\1$_val/" $__file_name
+	fi
 }
 
 function _add_config(){
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]} 
 	_cmd_param=( "${_cmd_param[@]:1}" ) 
-    local _val=`_join_by '=' ${_cmd_param[@]}`
-	
+    local _val=`_common.join_by '=' ${_cmd_param[@]}`
 	if [ -z "$_val" ]; then
 	    __remove_comment "$_key"
 	else
+		echo "" >> $__file_name
 		echo "$_key$__sep_char$_val" >> $__file_name
-	fi
-			
-	return
-	[[ -z "$1" ]] && return	|| local _key="$1"
-	local _val=$2
-	_common.debug "_add_config-> key->$_key | value->$_val"
-	#|| [[ "$_val" == *\\* ]]
-	
-	if [[ "$_val" ==  *\/* ]] ; then
-	  $__SED -i "s#\($_key *: *\).*#\1$_val#" $__file_name
-	else
-	  $__SED -i "s/\($_key *: *\).*/\1$_val/" $__file_name
 	fi
 }
 
@@ -156,18 +200,8 @@ function _exists_config(){
 		#doesn't exist
 		echo 0
 	fi
-		
-		
-	#_common.log "_exists_config-> key->$_key" 
 }
 
 #trap _cleanup 1 2 3 4 6 8 10 12 13 15
 _main $@
 exit 0
-
-#sed -i "s/\($1 *: *\).*/\1$2/" ./cassandra.yaml
-if grep -q PATTERN file.txt; then
-    echo found
-else
-    echo not found
-fi
