@@ -180,7 +180,7 @@ function _add_config(){
 function _remove_config(){
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]}
-	if [ "$(_exists_config "$_key")" -eq "1" ]; then
+	if [ "$(__exists_config "$_key")" -eq "1" ]; then
 	    __add_comment "$_key"
 	fi	
 }
@@ -195,7 +195,7 @@ function __remove_comment(){
     $__SED -i "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $__file_name
 }
 
-function _exists_config(){
+function __exists_config(){
 	[[ -z "$1" ]] && return	|| local _key="$1"
 	if grep -q "^[ ]*$_key[ ]*$__sep_char" $__file_name; then
 		#exists uncommented
