@@ -4,7 +4,7 @@
 # confix
 
 ## Summary
-pure bash script to modify/update configuration files
+simple bash script to modify/update configuration files
 
 ## Status 
 ALPHA
@@ -23,7 +23,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 ## Introduction
-pure bash script to modify/update configuration files.
+simple bash script to modify/update configuration files
  
 See Usage and Examples for more details. 
 
@@ -33,19 +33,24 @@ See Usage and Examples for more details.
 
 ## Examples
 - remove (comment out) an existing config element
-    confix -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
+
+      ./confix -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
 
 - uncomment an existing config element (no action if the config key does not exist)
-    confix -s':' -f cassandra.yaml ">concurrent_compactors"
+
+      ./confix -s':' -f cassandra.yaml ">concurrent_compactors"
 
 - add a new config to the end of the file
-    confix -s':' -f cassandra.yaml ">new_param=/some/val"
+
+      ./confix -s':' -f cassandra.yaml ">new_param=/some/val"
 
 - update the value of an existing config element
-    confix -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001"
+
+      ./confix -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001"
 
 - multiple commands
-    confix -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
+
+      ./confix -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
 
 ## Limitations
 * NA
