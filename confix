@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  0.7
+# VERSION:  0.8
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -32,7 +32,7 @@
 
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=0.7
+readonly __APPVERSION=0.8
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(x86_64 x86)
 readonly __DEBUG=FALSE
@@ -61,6 +61,9 @@ function __bootstrap(){
 	readonly __BASEDIRNAME=$( basename "$__BASEDIR" )
 	readonly __TIMESTAMP=$(date +%m-%d-%Y_%H-%M_%S)
 
+	#grep
+	__GREP=grep
+	#sed
 	if sed -c 2>&1 | grep -q invalid; then
 	    __SED=sed
 	else
@@ -158,9 +161,9 @@ function _update_config(){
 	_cmd_param=( "${_cmd_param[@]:1}" ) 
     local _val=$(_common.join_by '=' ${_cmd_param[@]})
     if [[ "$_val" ==  *\/* ]] ; then
-	  $__SED -i "s#\($_key *: *\).*#\1$_val#" $__file_name
+	  $__SED -i "s#\($_key *$__sep_char *\).*#\1$_val#" $__file_name
 	else
-	  $__SED -i "s/\($_key *: *\).*/\1$_val/" $__file_name
+	  $__SED -i "s/\($_key *$__sep_char *\).*/\1$_val/" $__file_name
 	fi
 }
 
@@ -197,10 +200,10 @@ function __remove_comment(){
 
 function __exists_config(){
 	[[ -z "$1" ]] && return	|| local _key="$1"
-	if grep -q "^[ ]*$_key[ ]*$__sep_char" $__file_name; then
+	if $__GREP -q "^[ ]*$_key[ ]*$__sep_char" $__file_name; then
 		#exists uncommented
 		echo 1
-	elif grep -q "^[ #]*$_key[ ]*$__sep_char" $__file_name; then
+	elif $__GREP -q "^[ #]*$_key[ ]*$__sep_char" $__file_name; then
 		#exists commented
 		echo 2
 	else
