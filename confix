@@ -122,8 +122,6 @@ function _main(){
 	__file_name="-"
 	__sep_char="="
 	__comment_char="#"
-	_mode=u
-	_PARAMS=
 
 	while getopts "hf:s:c:a:u:r:" OPTION
     do
@@ -136,6 +134,10 @@ function _main(){
          esac
     done
 	shift $((OPTIND-1))
+	
+	#check if file exists
+	[[ -e $__file_name ]] || _common.error_exit "file not found : $__file_name"
+	
     while test ${#} -gt 0
 	do
 	  _change_config "$1"
