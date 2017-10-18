@@ -31,11 +31,21 @@ See Usage and Examples for more details.
 
     curl -k https://raw.githubusercontent.com/budhash/confix/master/confix > confix; chmod +x confix
 
-## Usage
-* TODO
-
 ## Examples
-* TODO
+- remove (comment out) an existing config element
+    confix -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
+
+- uncomment an existing config element (no action if the config key does not exist)
+    confix -s':' -f cassandra.yaml ">concurrent_compactors"
+
+- add a new config to the end of the file
+    confix -s':' -f cassandra.yaml ">new_param=/some/val"
+
+- update the value of an existing config element
+    confix -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001"
+
+- multiple commands
+    confix -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
 
 ## Limitations
 * NA
@@ -52,6 +62,4 @@ You can download this project in either [zip](http://github.com/budhash/confix/z
 Or simply clone the project with [Git](http://git-scm.com/) by running:
 
     git clone git://github.com/budhash/confix
-
-## Credits / References
-* 
+ 

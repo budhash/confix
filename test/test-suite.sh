@@ -39,7 +39,7 @@ function __setup_data(){
 
 function __test_removeconfig_colonsep(){
 	__setup_data
-	$__SCRIPT -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
+	$__SCRIPT -c'#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
 	local returned=$(diff ./cassandra.yaml ./data/cassandra.yaml | sed '1d')
 	
 read -d '' local expected <<"EOF"

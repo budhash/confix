@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  0.1
+# VERSION:  0.7
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -32,7 +32,7 @@
 
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=0.1
+readonly __APPVERSION=0.7
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(x86_64 x86)
 readonly __DEBUG=FALSE
@@ -91,14 +91,20 @@ Options:
         
 Examples:
 --------
-    -add a configuration
-    $__APPNAME -s':' -f cassandra.yaml ">gc_warn_threshold_in_ms"
-    
-    -remove/comment a configuration key
-    $__APPNAME -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
+	- remove (comment out) an existing config element
+	$__APPNAME -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
 
-    -update a configuration
-    $__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2000"
+	- uncomment an existing config element (no action if the config key does not exist)
+	$__APPNAME -s':' -f cassandra.yaml ">concurrent_compactors"
+
+	- add a new config to the end of the file
+	$__APPNAME -s':' -f cassandra.yaml ">new_param=/some/val"
+
+	- update the value of an existing config element
+	$__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001"
+
+	- multiple commands
+	$__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
     
 EOF
     if [ "$1" == "error" ]; then
@@ -116,12 +122,13 @@ function _main(){
 	_mode=u
 	_PARAMS=
 
-	while getopts "f:s:c:a:u:r:" OPTION
+	while getopts "hf:s:c:a:u:r:" OPTION
     do
          case "$OPTION" in
 	 		 f) __file_name=$OPTARG;;
 			 s) __sep_char=$OPTARG;;
 			 c) __comment_char=$OPTARG;;
+			 h) _usage;;
              ?) _usage error;;
          esac
     done
