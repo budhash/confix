@@ -40,7 +40,7 @@ See Usage and Examples for more details.
 
       ./confix -s':' -f cassandra.yaml ">concurrent_compactors"
 
-- add a new config to the end of the file
+- add a new config to the end of the file (or update existing config) 
 
       ./confix -s':' -f cassandra.yaml ">new_param=/some/val"
 
@@ -52,8 +52,16 @@ See Usage and Examples for more details.
 
       ./confix -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
 
+- prints the modifications to console without updating the original file
+
+      ./confix -o- -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG" 
+
+- save the modifications to a different file
+
+      ./confix -olog4j-dev.properties -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG"
+
 ## Limitations
-* NA
+* Only tested on Mac (Sierra and above) and Ubuntu 
 
 ## Known Issues
 * See [confix issues on GitHub](https://github.com/budhash/confix/issues) for open issues

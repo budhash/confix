@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  0.8
+# VERSION:  0.9
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -32,7 +32,7 @@
 
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=0.8
+readonly __APPVERSION=0.9
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(x86_64 x86)
 readonly __DEBUG=FALSE
@@ -63,6 +63,8 @@ function __bootstrap(){
 
 	#grep
 	__GREP=grep
+	#cat
+	__CAT=cat
 	#sed
 	if sed -c 2>&1 | grep -q invalid; then
 	    __SED=sed
@@ -91,7 +93,11 @@ Options:
         
     -c <comment_character>                            
         default value is "#"
-        
+
+    -o <output_file>                            
+        default behavior is to edit/modify the file_name
+		"-" prints the modifications to console without updating file_name
+		
 Examples:
 --------
 	- remove (comment out) an existing config element
@@ -100,7 +106,7 @@ Examples:
 	- uncomment an existing config element (no action if the config key does not exist)
 	$__APPNAME -s':' -f cassandra.yaml ">concurrent_compactors"
 
-	- add a new config to the end of the file
+	- add a new config to the end of the file (or update existing config) 
 	$__APPNAME -s':' -f cassandra.yaml ">new_param=/some/val"
 
 	- update the value of an existing config element
@@ -108,7 +114,12 @@ Examples:
 
 	- multiple commands
 	$__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
-    
+  
+	- prints the modifications to console without updating the original file
+	$__APPNAME -o- -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG" 
+	
+	- save the modifications to a different file
+	$__APPNAME -olog4j-dev.properties -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG"
 EOF
     if [ "$1" == "error" ]; then
         exit 1
@@ -116,33 +127,55 @@ EOF
 }
 
 function _main(){
-    __bootstrap 
-	local _param=
-	local _rootConfig=${__BASECFG}
-	__file_name="-"
+    __bootstrap
+
+	#variables
+	__input_file="-"
+	__output_file=""
+	__console_output=false
 	__sep_char="="
 	__comment_char="#"
 
-	while getopts "hf:s:c:a:u:r:" OPTION
+	#parse commandline
+	while getopts "hf:o:s:c:a:u:r:" OPTION
     do
          case "$OPTION" in
-	 		 f) __file_name=$OPTARG;;
+	 		 f) __input_file=$OPTARG;;
+			 o) __output_file=$OPTARG;;
 			 s) __sep_char=$OPTARG;;
 			 c) __comment_char=$OPTARG;;
 			 h) _usage;;
+
              ?) _usage error;;
          esac
     done
 	shift $((OPTIND-1))
 	
-	#check if file exists
-	[[ -e $__file_name ]] || _common.error_exit "file not found : $__file_name"
 	
+	#check if file exists
+	[[ -e $__input_file ]] || _common.error_exit "file not found : $__input_file"
+	
+	#check if inplace editing is expected
+	if [[ ! -z "$__output_file" ]]; then
+		if [ "$__output_file" == "-" ]; then
+			#print output to console
+			__console_output=true
+			__output_file=$(mktemp -t "$__APPNAME.XXXXXXXXXX")
+		fi	
+		cp -f $__input_file $__output_file
+		__input_file=$__output_file
+	fi
+		
     while test ${#} -gt 0
 	do
 	  _change_config "$1"
 	  shift
 	done
+	
+	if [ "$__console_output" == "true" ]; then
+		$__CAT $__output_file
+		rm -f $__output_file
+	fi	
 }
 
 function _change_config(){
@@ -162,10 +195,16 @@ function _update_config(){
     local _key=${_cmd_param[0]}
 	_cmd_param=( "${_cmd_param[@]:1}" ) 
     local _val=$(_common.join_by '=' ${_cmd_param[@]})
+
+	local _key_status=$(__exists_config "$_key")
+	if [ "$_key_status" -eq "2" ]; then	
+		__remove_comment $_key
+	fi
+	
     if [[ "$_val" ==  *\/* ]] ; then
-	  $__SED -i "s#\($_key *$__sep_char *\).*#\1$_val#" $__file_name
+	  $__SED -i "s#\($_key *$__sep_char *\).*#\1$_val#" $__input_file
 	else
-	  $__SED -i "s/\($_key *$__sep_char *\).*/\1$_val/" $__file_name
+	  $__SED -i "s/\($_key *$__sep_char *\).*/\1$_val/" $__input_file
 	fi
 }
 
@@ -174,11 +213,18 @@ function _add_config(){
     local _key=${_cmd_param[0]} 
 	_cmd_param=( "${_cmd_param[@]:1}" ) 
     local _val=`_common.join_by '=' ${_cmd_param[@]}`
+	
 	if [ -z "$_val" ]; then
 	    __remove_comment "$_key"
 	else
-		echo "" >> $__file_name
-		echo "$_key$__sep_char$_val" >> $__file_name
+		local _key_status=$(__exists_config "$_key")
+		if [ "$_key_status" -eq "0" ]; then
+			#key doesn't exist - add it to end of file
+			echo "" >> $__input_file
+			echo "$_key$__sep_char$_val" >> $__input_file
+		else	
+		    _update_config "$@"
+		fi
 	fi
 }
 
@@ -192,24 +238,24 @@ function _remove_config(){
 
 function __add_comment(){
 	[[ -z "$1" ]] && return	|| local _key="$1"
-    $__SED -i "/$_key[ ]*$__sep_char/s/^/$__comment_char/" $__file_name
+    $__SED -i "/$_key[ ]*$__sep_char/s/^/$__comment_char/" $__input_file
 }
 
 function __remove_comment(){
 	[[ -z "$1" ]] && return	|| local _key="$1"
-    $__SED -i "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $__file_name
+    $__SED -i "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $__input_file
 }
 
 function __exists_config(){
 	[[ -z "$1" ]] && return	|| local _key="$1"
-	if $__GREP -q "^[ ]*$_key[ ]*$__sep_char" $__file_name; then
-		#exists uncommented
+	if $__GREP -q "^[ ]*$_key[ ]*$__sep_char" $__input_file; then
+		#_common.log exists-uncommented
 		echo 1
-	elif $__GREP -q "^[ #]*$_key[ ]*$__sep_char" $__file_name; then
-		#exists commented
+	elif $__GREP -q "^[ #]*$_key[ ]*$__sep_char" $__input_file; then
+		#_common.log exists-commented
 		echo 2
 	else
-		#doesn't exist
+		#_common.log doesnot-exist
 		echo 0
 	fi
 }
