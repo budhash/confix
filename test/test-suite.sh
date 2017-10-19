@@ -38,7 +38,13 @@ function _init(){
 	readonly __DATA_CASSANDRA_MD5=1cb5233aafd7d04db352da0fb9c8a8e7
 	readonly __DATA_LOG4J_MD5=04f5a61129e14a96034a60c2daaca66f
 	readonly __DATA_PHP_MD5=92efb05ec8120dbc426d46533e07c3e8
-	readonly __DATA_SIMPPROP_MD5=06443e2731bb7e5d4b1c1b458378b1ff		
+	readonly __DATA_SIMPPROP_MD5=06443e2731bb7e5d4b1c1b458378b1ff	
+	
+	if hash md5 2>/dev/null; then
+	    __MD5=md5
+	else
+	    __MD5=md5sum
+	fi
 }
 
 ## tests
@@ -58,8 +64,8 @@ read -d '' local expected <<"EOF"
 	---
 	> gc_warn_threshold_in_ms: 1000
 EOF
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -78,8 +84,8 @@ function __test_removeconfig_colonsep_invalid(){
 	local returned=$(diff ./$_data_file ./data/$_data_file | sed '1d')
 	
 	local expected=
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -102,8 +108,8 @@ read -d '' local expected <<"EOF"
 	---
 	> #concurrent_compactors: 1
 EOF
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -123,8 +129,8 @@ function __test_addconfig_colonsep_new_withoutval(){
 	
 	#nothing should be added here
 	local expected=
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -149,8 +155,8 @@ read -d '' local expected <<"EOF"
 >           flow: FAST
 \\ No newline at end of file
 EOF
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -173,8 +179,8 @@ read -d '' local expected <<"EOF"
 	---
 	> gc_warn_threshold_in_ms: 1000
 EOF
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -194,8 +200,8 @@ function __test_updateconfig_colonsep_nonexistingval(){
 	
 	#nothing should be added here
 	local expected=
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -218,8 +224,8 @@ read -d '' local expected <<"EOF"
 	---
 	> commitlog_directory: /var/lib/cassandra/commitlog
 EOF
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -242,8 +248,8 @@ read -d '' local expected <<"EOF"
 	---
 	> #log4j.logger.com.endeca.itl.web.metrics=INFO
 EOF
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -275,8 +281,8 @@ read -d '' local expected <<"EOF"
 ---
 > gc_warn_threshold_in_ms: 1000
 EOF
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -295,8 +301,8 @@ function __test_output_to_different_file(){
 	rm cassandra.yaml.updated
 	#nothing should be added here
 	local expected=
-	local rethash=$(echo $returned | md5)
-	local exphash=$(echo $expected | md5)
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
 	if [[ $rethash == $exphash ]] ; then 
 		return 0; 
 	else 
@@ -311,7 +317,7 @@ $returned" 1>&2;
 function __test_output_to_console(){
 	local _data_file=./data/log4j.properties
 	$__SCRIPT -s':' -o- -f $_data_file ">new_param" > /dev/null
-	if [[ "$(cat $_data_file | md5)" == "$__DATA_LOG4J_MD5" ]] ; then 
+	if [[ "$(cat $_data_file | $__MD5)" == "$__DATA_LOG4J_MD5" ]] ; then 
 		return 0; 
 	else 
 		return 1;
