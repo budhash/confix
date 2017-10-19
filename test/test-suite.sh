@@ -314,7 +314,7 @@ $returned" 1>&2;
 	fi
 }
 
-function __test_output_to_console(){
+function __disabledtest_output_to_console(){
 	local _data_file=./data/log4j.properties
 	$__SCRIPT -s':' -o- -f $_data_file ">new_param" > /dev/null
 	if [[ "$(cat $_data_file | $__MD5)" == "$__DATA_LOG4J_MD5" ]] ; then 
