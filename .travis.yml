@@ -1,4 +1,4 @@
 language: bash
 
 script:
-        - bash test/test_suite.sh
+        - bash test/test-suite.sh
