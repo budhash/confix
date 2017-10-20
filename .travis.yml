@@ -2,7 +2,6 @@ language: bash
 
 os:
   - linux
-  - osx
 
 script:
   - bash test/test-suite.sh
