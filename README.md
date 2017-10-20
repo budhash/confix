@@ -7,7 +7,7 @@
 simple bash script to modify/update configuration files
 
 ## Status 
-ALPHA
+BETA
 
 ## License
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,6 +60,10 @@ See Usage and Examples for more details.
 
       ./confix -olog4j-dev.properties -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG"
 
+- specify the edit/update commands via external file (log4j.cf) instead of commandline
+
+      ./confix -o- -e log4j.cf -f log4j.properties
+	
 ## Limitations
 * Only tested on Mac (Sierra and above) and Ubuntu 
 

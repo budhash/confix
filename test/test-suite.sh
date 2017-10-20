@@ -294,6 +294,62 @@ $returned" 1>&2;
 	fi
 }
 
+function __test_updateconfig_multiple_external_config_a(){
+	local _data_file=cassandra.yaml
+	__setup_data $_data_file
+	$__SCRIPT -s':' -f $_data_file -e data/cassandra.cf
+	local returned=$(diff ./$_data_file ./data/$_data_file | sed '1d')
+	
+read -d '' local expected <<"EOF"
+196c196
+< commitlog_directory: /change/commitlog
+---
+> commitlog_directory: /var/lib/cassandra/commitlog
+810c810
+< concurrent_compactors: 1
+---
+> #concurrent_compactors: 1
+1169c1169
+< gc_warn_threshold_in_ms: 2001
+---
+> gc_warn_threshold_in_ms: 1000
+EOF
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
+	if [[ $rethash == $exphash ]] ; then 
+		return 0; 
+	else 
+		echo "[expected]: 
+$expected" 1>&2;
+		echo "[returned]:
+$returned" 1>&2;
+		return 1; 
+	fi
+}
+
+function __test_updateconfig_multiple_external_config_b(){
+	$__SCRIPT -o- -e data/log4j.cf -f data/log4j.properties > .f.tmp
+	$__SCRIPT -o- -f data/log4j.properties "log4j.rootLogger=DEBUG,stdout" "log4j.logger.com.endeca=WARN" ">log4j.appender.stdout.layout.ConversionPattern" "<log4j.appender.stdout=org.apache.log4j.ConsoleAppender" ">log4j.appender.stdout.layout=org.apache.log4j.NewLayout" "log4j.logger.com.endeca.itl.web.metrics=INFO" "log4j.logger.com.web=INFO" > .c.tmp
+	local returned=$(diff ./.f.tmp ./.c.tmp)
+	
+	local expected=
+	local rethash=$(echo $returned | $__MD5)
+	local exphash=$(echo $expected | $__MD5)
+	
+	rm ./.f.tmp ./.c.tmp
+	
+	if [[ $rethash == $exphash ]] ; then 
+		return 0; 
+	else 
+		echo "[expected]: 
+$expected" 1>&2;
+		echo "[returned]:
+$returned" 1>&2;
+		return 1; 
+	fi
+	
+}
+
 function __test_output_to_different_file(){
 	local _data_file=./data/cassandra.yaml
 	$__SCRIPT -s':' -o cassandra.yaml.updated -f $_data_file ">new_param"

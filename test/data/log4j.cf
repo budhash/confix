@@ -1,0 +1,9 @@
+#main configs
+log4j.rootLogger=DEBUG,stdout
+log4j.logger.com.endeca=WARN
+  #  additional configs
+>log4j.appender.stdout.layout.ConversionPattern
+<log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+>log4j.appender.stdout.layout=org.apache.log4j.NewLayout
+log4j.logger.com.endeca.itl.web.metrics=INFO
+log4j.logger.com.web=INFO

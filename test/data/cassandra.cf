@@ -1,0 +1,3 @@
+gc_warn_threshold_in_ms=2001
+>concurrent_compactors
+commitlog_directory=/change/commitlog

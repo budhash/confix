@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  0.9
+# VERSION:  1.0
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -32,7 +32,7 @@
 
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=0.9
+readonly __APPVERSION=1.0
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(x86_64 x86)
 readonly __DEBUG=FALSE
@@ -87,17 +87,22 @@ Options:
         
     -f <file_name>           
     	name of the file that needs to be modified
-        
+   
+    -o <output_file>                            
+        default behavior is to edit/modify the file_name
+		"-" prints the modifications to console without updating file_name
+
+	-e <external_command_file>                            
+        pick up edit commands from external file. 
+		this file should contain one command per line
+			    
     -s <separator_character>            
         default value is "="
         
     -c <comment_character>                            
         default value is "#"
 
-    -o <output_file>                            
-        default behavior is to edit/modify the file_name
-		"-" prints the modifications to console without updating file_name
-		
+
 Examples:
 --------
 	- remove (comment out) an existing config element
@@ -120,6 +125,10 @@ Examples:
 	
 	- save the modifications to a different file
 	$__APPNAME -olog4j-dev.properties -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG"
+	
+	- specify the edit/update commands via external file (log4j.cf) instead of commandline
+	$__APPNAME -o- -e log4j.cf -f log4j.properties
+	
 EOF
     if [ "$1" == "error" ]; then
         exit 1
@@ -132,20 +141,21 @@ function _main(){
 	#variables
 	__input_file="-"
 	__output_file=""
+	__config_file=
 	__console_output=false
 	__sep_char="="
 	__comment_char="#"
 
 	#parse commandline
-	while getopts "hf:o:s:c:a:u:r:" OPTION
+	while getopts "hf:o:e:s:c:" OPTION
     do
          case "$OPTION" in
+			 h) _usage;;
 	 		 f) __input_file=$OPTARG;;
 			 o) __output_file=$OPTARG;;
+			 e) __config_file=$OPTARG;;
 			 s) __sep_char=$OPTARG;;
 			 c) __comment_char=$OPTARG;;
-			 h) _usage;;
-
              ?) _usage error;;
          esac
     done
@@ -153,7 +163,7 @@ function _main(){
 	
 	
 	#check if file exists
-	[[ -e $__input_file ]] || _common.error_exit "file not found : $__input_file"
+	[[ -e $__input_file ]] || _common.error_exit "file not found : [-f $__input_file] - please specify file to be updated"
 	
 	#check if inplace editing is expected
 	if [[ ! -z "$__output_file" ]]; then
@@ -165,13 +175,26 @@ function _main(){
 		cp -f $__input_file $__output_file
 		__input_file=$__output_file
 	fi
-		
+	
+	#read commands from external file
+	if [[ ! -z "$__config_file" ]]; then
+		[[ -e $__config_file ]] || _common.error_exit "external config file not found : [-e $__config_file]"
+		while IFS=$'\n' read cmd
+		do
+			if [[ ! "$cmd" =~ \#.* ]] && [[ ! -z "$cmd" ]];then
+				_change_config "$cmd"
+			fi	
+		done < $__config_file
+	fi	
+	
+	#iterate through commands passed via commandline	
     while test ${#} -gt 0
 	do
 	  _change_config "$1"
 	  shift
 	done
 	
+	#print out the config to console
 	if [ "$__console_output" == "true" ]; then
 		$__CAT $__output_file
 		rm -f $__output_file
@@ -193,6 +216,8 @@ function _change_config(){
 function _update_config(){
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]}
+	[[ -z "$_key" ]] && return
+	
 	_cmd_param=( "${_cmd_param[@]:1}" ) 
     local _val=$(_common.join_by '=' ${_cmd_param[@]})
 
@@ -211,6 +236,8 @@ function _update_config(){
 function _add_config(){
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]} 
+	[[ -z "$_key" ]] && return
+	
 	_cmd_param=( "${_cmd_param[@]:1}" ) 
     local _val=`_common.join_by '=' ${_cmd_param[@]}`
 	
@@ -231,6 +258,8 @@ function _add_config(){
 function _remove_config(){
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]}
+	[[ -z "$_key" ]] && return
+	
 	if [ "$(__exists_config "$_key")" -eq "1" ]; then
 	    __add_comment "$_key"
 	fi	
