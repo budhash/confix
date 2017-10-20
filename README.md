@@ -1,8 +1,6 @@
 # confix
 [![Build Status](https://travis-ci.org/budhash/confix.png?branch=master)](https://travis-ci.org/budhash/confix)
 
-# confix
-
 ## Summary
 simple bash script to modify/update configuration files
 
@@ -63,7 +61,12 @@ See Usage and Examples for more details.
 - specify the edit/update commands via external file (log4j.cf) instead of commandline
 
       ./confix -o- -e log4j.cf -f log4j.properties
-	
+
+- execute directly via curl + bash 
+
+      curl -sk https://raw.githubusercontent.com/budhash/confix/master/confix | bash /dev/stdin -o- -f test/data/log4j.properties "log4j.rootLogger=DEBUG,stdout"
+      curl -sk https://raw.githubusercontent.com/budhash/confix/master/confix | bash /dev/stdin -o- -e test/data/log4j.cf -f test/data/log4j.properties
+
 ## Limitations
 * Only tested on Mac (Sierra and above) and Ubuntu 
 
