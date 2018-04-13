@@ -66,11 +66,17 @@ function __bootstrap(){
 	#cat
 	__CAT=cat
 	#sed
-	if sed -c 2>&1 | grep -q invalid; then
-	    __SED=sed
+	if sed --version 2>&1 | grep -q GNUU; then
+	    if sed -c 2>&1 | grep -q invalid; then
+            __SED="sed -i "
+	    else
+	        __SED="sed -c -i "
+	    fi
 	else
-	    __SED="sed -c "
+        #mac sed
+        __SED="/usr/bin/sed -i '' "
 	fi
+	_common.debug "sed - $__SED"
 }
 
 function _usage()
@@ -227,9 +233,9 @@ function _update_config(){
 	fi
 	
     if [[ "$_val" ==  *\/* ]] ; then
-	  $__SED -i "s#\($_key *$__sep_char *\).*#\1$_val#" $__input_file
+	  $__SED "s#\($_key *$__sep_char *\).*#\1$_val#" $__input_file
 	else
-	  $__SED -i "s/\($_key *$__sep_char *\).*/\1$_val/" $__input_file
+	  $__SED "s/\($_key *$__sep_char *\).*/\1$_val/" $__input_file
 	fi
 }
 
@@ -267,12 +273,12 @@ function _remove_config(){
 
 function __add_comment(){
 	[[ -z "$1" ]] && return	|| local _key="$1"
-    $__SED -i "/$_key[ ]*$__sep_char/s/^/$__comment_char/" $__input_file
+    $__SED "/$_key[ ]*$__sep_char/s/^/$__comment_char/" $__input_file
 }
 
 function __remove_comment(){
 	[[ -z "$1" ]] && return	|| local _key="$1"
-    $__SED -i "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $__input_file
+    $__SED "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $__input_file
 }
 
 function __exists_config(){
