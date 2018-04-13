@@ -66,7 +66,7 @@ function __bootstrap(){
 	#cat
 	__CAT=cat
 	#sed
-	if sed --version 2>&1 | grep -q GNUU; then
+	if sed --version 2>&1 | grep -q GNU; then
 	    if sed -c 2>&1 | grep -q invalid; then
             __SED="sed -i "
 	    else
