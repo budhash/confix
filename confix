@@ -30,57 +30,257 @@
 # Type "confix -h" for usage guidelines.
 # --------------------------------------------------------------------
 
+# --------------------------------------------------------------------
+# common : start
+# --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
 readonly __APPVERSION=1.0
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
-readonly __SUPPORTED_ARCH=(x86_64 x86)
+readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
 ## end ## meta-data
 
 ##
 # @info     logging functions
 ##
-function _common.log() { echo "[info]: $@" 1>&2; }
-function _common.log_linebreak() { echo "" 1>&2; }
-function _common.warn() { echo "[warn]: $@" 1>&2; }
-function _common.error() { echo "[error]: $@" 1>&2; }
-function _common.error_exit() { echo "[error]: $@" 1>&2; exit 1;}
-function _common.debug () { [ "$__DEBUG" == "TRUE" ] && echo "[debug]: $@" 1>&2; }
+function common::log() { echo "[info]: $@" 1>&2; }
+function common::log_linebreak() { echo "" 1>&2; }
+function common::warn() { echo "[warn]: $@" 1>&2; }
+function common::error() { echo "[error]: $@" 1>&2; }
+function common::error_exit() { echo "[error]: $@" 1>&2; exit 1;}
+function common::debug () { [ "$__DEBUG" == "TRUE" ] && echo "[debug]: $@" 1>&2; }
 
 ##
 # @info     string functions
 ##
-function _common.trimall() { echo $(echo "$@" | tr -d '[ \t]' | tr 'A-Z' 'a-z'); }
-function _common.lowercase() { echo "$@" | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/"; }
-function _common.uppercase() { echo "$@" | sed "y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/"; }
-function _common.join_by() { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+function common::trimall() { echo $(echo "$@" | tr -d '[ \t]' | tr 'A-Z' 'a-z'); }
+function common::lowercase() { echo "$@" | sed "y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/"; }
+function common::uppercase() { echo "$@" | sed "y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/"; }
+function common::join_by() { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
 
-function __bootstrap(){	
-    readonly __BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-	readonly __BASEDIRNAME=$( basename "$__BASEDIR" )
-	readonly __TIMESTAMP=$(date +%m-%d-%Y_%H-%M_%S)
+##
+# @info     math functions
+##
+function common::random_2() { echo ${RANDOM:0-2}; }
+function common::random_1() { echo ${RANDOM:0-1}; }
 
-	#grep
-	__GREP=grep
-	#cat
-	__CAT=cat
-	#sed
-	if sed --version 2>&1 | grep -q GNU; then
-	    if sed -c 2>&1 | grep -q invalid; then
-            __SED="sed -i "
-	    else
-	        __SED="sed -c -i "
-	    fi
-	else
-        #mac sed
-        __SED="/usr/bin/sed -i '' "
-	fi
-	_common.debug "sed - $__SED"
+##
+# @info     file functions
+##
+function common::basedir() { echo $( dirname "$1" ); }
+
+##
+# @info     returns the current os enum [WINDOWS/MAC/LINUX]
+# @return   os enum [WINDOWS , MAC , LINUX]
+##
+function common::get_os() {
+    local _ossig=`uname -s 2> /dev/null | tr "[:upper:]" "[:lower:]" 2> /dev/null`
+    local _os_base="UNKNOWN"
+    case "$_ossig" in
+        *windowsnt*) _os_base="WINDOWS";;
+        *darwin*) _os_base="MAC";;
+        *linux*)    
+            if [ -f /etc/redhat-release ] ; then
+                _os_base="LINUX-REDHAT"
+            elif [ -f /etc/SuSE-release ] ; then
+                _os_base="LINUX-SUSE"
+            elif [ -f /etc/mandrake-release ] ; then
+                _os_base="LINUX-MANDRAKE"
+            elif [ -f /etc/debian_version ] ; then
+                _os_base="LINUX-DEBIAN"             
+            else
+                _os_base="LINUX"            
+            fi
+            ;;
+        *) _os_base="UNKNOWN";;
+    esac
+    echo $_os_base
 }
 
-function _usage()
-{
+##
+# @info     returns and enum defining to the system archictcture [A=ARM X=INTEL]
+# @return   [X32, X64, A32, A64]
+##
+function common::get_arch(){
+    local _arch="$(uname -m)"  # -i is only linux, -m is linux and apple
+    local _arch_key="UNKNOWN"
+    
+    if [[ "$_arch" = x86_64* ]]; then
+        if [[ "$(uname -a)" = *ARM64* ]]; then
+            _arch_key='A64'
+        else
+            _arch_key='X64'
+        fi
+    elif [[ "$_arch" = i*86 ]]; then
+        _arch_key='X32'
+    elif [[ "$_arch" = arm* ]]; then
+        _arch_key='A32'
+    elif test "$_arch" = aarch64; then
+        _arch_key='A64'
+    fi
+    
+    echo $_arch_key
+}
+
+##
+# @info     returns the current cpu architure
+# @return   cpu architure [x86_64 , x86]
+##
+function common::get_arch_raw(){
+    local _arch="UNKNOWN"
+    case "$(common::get_os)" in
+        WINDOWS) _arch=`uname -p 2> /dev/null`;;
+        MAC)     [ "$(sysctl hw.cpu64bit_capable | awk '{print $2}')" == "1" ] && _arch=x86_64 || _arch=x86;;
+        LINUX*)  _arch=`uname -m 2> /dev/null`;;
+        *)       _arch="UNKNOWN";;
+    esac
+    
+    if [ "$_arch" == "i686" ]; then
+        _arch="x86";
+    fi
+
+    echo $_arch
+}
+
+##
+# @info     is arm processor
+# @return   true / false
+##
+function common::is_arm(){
+    if [[ "$(common::get_arch)" =~ ^A.* ]]; then
+        # 0 = true
+        #return 0
+        true  
+    else
+        # 1 = false
+        #return 1
+        false
+    fi 
+}
+
+##
+# @info    bootstrap
+##
+function __bootstrap() {    
+    readonly __BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    readonly __BASEDIRNAME=$( basename "$__BASEDIR" )
+    readonly __TIMESTAMP=$(date +%Y%m%d%H%M%S${RANDOM:0-2})
+}
+# --------------------------------------------------------------------
+# common : end
+# --------------------------------------------------------------------
+
+function __map_commands() {
+    # grep
+    __GREP=grep
+    # cat
+    __CAT=cat
+    # sed
+    if sed --version 2>&1 | grep -q GNU; then
+        if sed -c 2>&1 | grep -q invalid; then
+            __SED="sed -i "
+        else
+            __SED="sed -c -i "
+        fi
+    else
+        #mac sed
+        __SED="/usr/bin/sed -i .$__TIMESTAMP "
+    fi
+}
+
+function __init() {
+    __bootstrap
+    # ensure os is supported
+    if [ ${#__SUPPORTED_OS[@]} -ne 0 ]; then
+        _os=$(common::get_os)
+        if [[ ! " ${__SUPPORTED_OS[*]} " =~ " ${_os} " ]]; then
+            common::error_exit "unsupported os: $_os [supported: ${__SUPPORTED_OS[*]}]"
+        fi
+    fi
+ 
+    # ensure architecture is supported
+    if [ ${#__SUPPORTED_ARCH[@]} -ne 0 ]; then
+        _arch=$(common::get_arch)
+        if [[ ! " ${__SUPPORTED_ARCH[*]} " =~ " ${_arch} " ]]; then
+            common::error_exit "unsupported architecture: $_arch [supported: ${__SUPPORTED_ARCH[*]}]"
+        fi
+    fi
+    
+    #test common::is_arm && common::log "ARM" || common::log "INTEL"
+
+    __map_commands
+}
+
+function main() {
+    # variables
+    input_file="-"
+    output_file=""
+    config_file=
+    console_output=false
+    __sep_char="="
+    __comment_char="#"
+
+    # parse commandline
+    while getopts "hf:o:e:s:c:" OPTION; do
+        case "$OPTION" in
+            h) _usage;;
+            f) input_file=$OPTARG;;
+            o) output_file=$OPTARG;;
+            e) config_file=$OPTARG;;
+            s) __sep_char=$OPTARG;;
+            c) __comment_char=$OPTARG;;
+            ?) _usage error;;
+         esac
+    done
+    shift $((OPTIND-1))
+    
+    
+    # check if file exists
+    [[ -e $input_file ]] || common::error_exit "file not found : [-f $input_file] - please specify file to be updated"
+    
+    # check if inplace editing is expected
+    if [[ ! -z "$output_file" ]]; then
+        if [ "$output_file" == "-" ]; then
+            #print output to console
+            console_output=true
+            output_file=$(mktemp -t "$__APPNAME.XXXXXXXXXX")
+        fi    
+        cp -f $input_file $output_file
+        input_file=$output_file
+    fi
+    
+    # read commands from external file
+    if [[ ! -z "$config_file" ]]; then
+        [[ -e $config_file ]] || common::error_exit "external config file not found : [-e $config_file]"
+        while IFS=$'\n' read cmd; do
+            if [[ ! "$cmd" =~ \#.* ]] && [[ ! -z "$cmd" ]];then
+                _change_config "$cmd"
+            fi    
+        done < $config_file
+    fi    
+    
+    # iterate through commands passed via commandline    
+    while test ${#} -gt 0; do
+        _change_config "$1"
+        shift
+    done
+    
+    # print out the config to console
+    if [ "$console_output" == "true" ]; then
+        $__CAT $output_file
+        rm -f $output_file
+    fi
+    
+    # backup file is created on mac
+    local backup_file=${input_file}.${__TIMESTAMP}
+    if [ -f $backup_file ]; then
+        mv $backup_file /tmp/
+    fi
+}
+
+##
+function _usage() {
     if [ "$1" != "error" ]; then
         echo "$__APPNAME $__APPVERSION, pure bash script to modify/update configuration files"
     fi
@@ -92,16 +292,16 @@ Options:
         show this message
         
     -f <file_name>           
-    	name of the file that needs to be modified
+        name of the file that needs to be modified
    
     -o <output_file>                            
         default behavior is to edit/modify the file_name
-		"-" prints the modifications to console without updating file_name
+        "-" prints the modifications to console without updating file_name
 
-	-e <external_command_file>                            
+    -e <external_command_file>                            
         pick up edit commands from external file. 
-		this file should contain one command per line
-			    
+        this file should contain one command per line
+                
     -s <separator_character>            
         default value is "="
         
@@ -111,190 +311,125 @@ Options:
 
 Examples:
 --------
-	- remove (comment out) an existing config element
-	$__APPNAME -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
+    - remove (comment out) an existing config element
+    $__APPNAME -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
 
-	- uncomment an existing config element (no action if the config key does not exist)
-	$__APPNAME -s':' -f cassandra.yaml ">concurrent_compactors"
+    - uncomment an existing config element (no action if the config key does not exist)
+    $__APPNAME -s':' -f cassandra.yaml ">concurrent_compactors"
 
-	- add a new config to the end of the file (or update existing config) 
-	$__APPNAME -s':' -f cassandra.yaml ">new_param=/some/val"
+    - add a new config to the end of the file (or update existing config) 
+    $__APPNAME -s':' -f cassandra.yaml ">new_param=/some/val"
 
-	- update the value of an existing config element
-	$__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001"
+    - update the value of an existing config element
+    $__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001"
 
-	- multiple commands
-	$__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
+    - multiple commands
+    $__APPNAME -s':' -f cassandra.yaml "gc_warn_threshold_in_ms=2001" ">concurrent_compactors" "commitlog_directory=/change/commitlog"
   
-	- prints the modifications to console without updating the original file
-	$__APPNAME -o- -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG" 
-	
-	- save the modifications to a different file
-	$__APPNAME -olog4j-dev.properties -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG"
-	
-	- specify the edit/update commands via external file (log4j.cf) instead of commandline
-	$__APPNAME -o- -e log4j.cf -f log4j.properties
-	
+    - prints the modifications to console without updating the original file
+    $__APPNAME -o- -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG" 
+    
+    - save the modifications to a different file
+    $__APPNAME -olog4j-dev.properties -f log4j.properties "log4j.logger.com.endeca.itl.web.metrics=DEBUG"
+    
+    - specify the edit/update commands via external file (log4j.cf) instead of commandline
+    $__APPNAME -o- -e log4j.cf -f log4j.properties
+    
 EOF
     if [ "$1" == "error" ]; then
         exit 1
     fi
 }
 
-function _main(){
-    __bootstrap
+function _change_config() {
+    local _cmd="$@"
 
-	#variables
-	__input_file="-"
-	__output_file=""
-	__config_file=
-	__console_output=false
-	__sep_char="="
-	__comment_char="#"
-
-	#parse commandline
-	while getopts "hf:o:e:s:c:" OPTION
-    do
-         case "$OPTION" in
-			 h) _usage;;
-	 		 f) __input_file=$OPTARG;;
-			 o) __output_file=$OPTARG;;
-			 e) __config_file=$OPTARG;;
-			 s) __sep_char=$OPTARG;;
-			 c) __comment_char=$OPTARG;;
-             ?) _usage error;;
-         esac
-    done
-	shift $((OPTIND-1))
-	
-	
-	#check if file exists
-	[[ -e $__input_file ]] || _common.error_exit "file not found : [-f $__input_file] - please specify file to be updated"
-	
-	#check if inplace editing is expected
-	if [[ ! -z "$__output_file" ]]; then
-		if [ "$__output_file" == "-" ]; then
-			#print output to console
-			__console_output=true
-			__output_file=$(mktemp -t "$__APPNAME.XXXXXXXXXX")
-		fi	
-		cp -f $__input_file $__output_file
-		__input_file=$__output_file
-	fi
-	
-	#read commands from external file
-	if [[ ! -z "$__config_file" ]]; then
-		[[ -e $__config_file ]] || _common.error_exit "external config file not found : [-e $__config_file]"
-		while IFS=$'\n' read cmd
-		do
-			if [[ ! "$cmd" =~ \#.* ]] && [[ ! -z "$cmd" ]];then
-				_change_config "$cmd"
-			fi	
-		done < $__config_file
-	fi	
-	
-	#iterate through commands passed via commandline	
-    while test ${#} -gt 0
-	do
-	  _change_config "$1"
-	  shift
-	done
-	
-	#print out the config to console
-	if [ "$__console_output" == "true" ]; then
-		$__CAT $__output_file
-		rm -f $__output_file
-	fi	
+    if [[ $_cmd == ">"* ]]; then
+        _add_config ${_cmd#">"}
+    elif [[ $_cmd == "<"* ]]; then
+        _remove_config ${_cmd#"<"}
+    else        
+        _update_config $_cmd
+    fi    
 }
 
-function _change_config(){
-	local _cmd="$@"
-
-	if [[ $_cmd == ">"* ]]; then
-	    _add_config ${_cmd#">"}
-	elif [[ $_cmd == "<"* ]]; then
-		_remove_config ${_cmd#"<"}
-	else		
-		_update_config $_cmd
-	fi	
-}
-
-function _update_config(){
+function _update_config() {
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]}
-	[[ -z "$_key" ]] && return
-	
-	_cmd_param=( "${_cmd_param[@]:1}" ) 
-    local _val=$(_common.join_by '=' ${_cmd_param[@]})
+    [[ -z "$_key" ]] && return
+    
+    _cmd_param=( "${_cmd_param[@]:1}" ) 
+    local _val=$(common::join_by '=' ${_cmd_param[@]})
 
-	local _key_status=$(__exists_config "$_key")
-	if [ "$_key_status" -eq "2" ]; then	
-		__remove_comment $_key
-	fi
-	
+    local _key_status=$(_rexists_config "$_key")
+    if [ "$_key_status" -eq "2" ]; then    
+        _remove_comment $_key
+    fi
+    
     if [[ "$_val" ==  *\/* ]] ; then
-	  $__SED "s#\($_key *$__sep_char *\).*#\1$_val#" $__input_file
-	else
-	  $__SED "s/\($_key *$__sep_char *\).*/\1$_val/" $__input_file
-	fi
+      $__SED "s#\($_key *$__sep_char *\).*#\1$_val#" $input_file
+    else
+      $__SED "s/\($_key *$__sep_char *\).*/\1$_val/" $input_file
+    fi
 }
 
-function _add_config(){
+function _add_config() {
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]} 
-	[[ -z "$_key" ]] && return
-	
-	_cmd_param=( "${_cmd_param[@]:1}" ) 
-    local _val=`_common.join_by '=' ${_cmd_param[@]}`
-	
-	if [ -z "$_val" ]; then
-	    __remove_comment "$_key"
-	else
-		local _key_status=$(__exists_config "$_key")
-		if [ "$_key_status" -eq "0" ]; then
-			#key doesn't exist - add it to end of file
-			echo "" >> $__input_file
-			echo "$_key$__sep_char$_val" >> $__input_file
-		else	
-		    _update_config "$@"
-		fi
-	fi
+    [[ -z "$_key" ]] && return
+    
+    _cmd_param=( "${_cmd_param[@]:1}" ) 
+    local _val=`common::join_by '=' ${_cmd_param[@]}`
+    
+    if [ -z "$_val" ]; then
+        _remove_comment "$_key"
+    else
+        local _key_status=$(_rexists_config "$_key")
+        if [ "$_key_status" -eq "0" ]; then
+            #key doesn't exist - add it to end of file
+            echo "" >> $input_file
+            echo "$_key$__sep_char$_val" >> $input_file
+        else    
+            _update_config "$@"
+        fi
+    fi
 }
 
-function _remove_config(){
+function _remove_config() {
     local _cmd_param=(${1//=/ })
     local _key=${_cmd_param[0]}
-	[[ -z "$_key" ]] && return
-	
-	if [ "$(__exists_config "$_key")" -eq "1" ]; then
-	    __add_comment "$_key"
-	fi	
+    [[ -z "$_key" ]] && return
+    
+    if [ "$(_rexists_config "$_key")" -eq "1" ]; then
+        _add_comment "$_key"
+    fi    
 }
 
-function __add_comment(){
-	[[ -z "$1" ]] && return	|| local _key="$1"
-    $__SED "/$_key[ ]*$__sep_char/s/^/$__comment_char/" $__input_file
+function _add_comment() {
+    [[ -z "$1" ]] && return    || local _key="$1"
+    $__SED "/$_key[ ]*$__sep_char/s/^/$__comment_char/" $input_file
 }
 
-function __remove_comment(){
-	[[ -z "$1" ]] && return	|| local _key="$1"
-    $__SED "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $__input_file
+function _remove_comment() {
+    [[ -z "$1" ]] && return    || local _key="$1"
+    $__SED "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $input_file
 }
 
-function __exists_config(){
-	[[ -z "$1" ]] && return	|| local _key="$1"
-	if $__GREP -q "^[ ]*$_key[ ]*$__sep_char" $__input_file; then
-		#_common.log exists-uncommented
-		echo 1
-	elif $__GREP -q "^[ #]*$_key[ ]*$__sep_char" $__input_file; then
-		#_common.log exists-commented
-		echo 2
-	else
-		#_common.log doesnot-exist
-		echo 0
-	fi
+function _rexists_config() {
+    [[ -z "$1" ]] && return    || local _key="$1"
+    if $__GREP -q "^[ ]*$_key[ ]*$__sep_char" $input_file; then
+        common::debug exists-uncommented
+        echo 1
+    elif $__GREP -q "^[ #]*$_key[ ]*$__sep_char" $input_file; then
+        common::debug exists-commented
+        echo 2
+    else
+        common::debug doesnot-exist
+        echo 0
+    fi
 }
 
 #trap _cleanup 1 2 3 4 6 8 10 12 13 15
-_main $@
+__init
+#main $@
 exit 0
