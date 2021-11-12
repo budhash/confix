@@ -1,3 +1,4 @@
+#!/bin/bash
 #test-suite
 
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
