@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [ master, 'claude/**' ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # confix picks a different sed invocation per platform, so both
+        # matter - GNU sed on linux, BSD sed on macos
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: show environment
+        run: |
+          bash --version | head -1
+          sed --version 2>/dev/null | head -1 || echo "sed: BSD"
+
+      - name: syntax check
+        run: bash -n confix
+
+      - name: run test suite
+        run: ./test/run-tests.sh -n
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: run shellcheck (advisory)
+        continue-on-error: true
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck -s bash confix test/run-tests.sh test/lib/testlib.sh || true
