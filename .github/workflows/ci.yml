@@ -3,8 +3,10 @@ name: ci
 on:
   push:
     branches: [ master, 'claude/**' ]
-  pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -29,14 +31,3 @@ jobs:
 
       - name: run test suite
         run: ./test/run-tests.sh -n
-
-  shellcheck:
-    name: shellcheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: run shellcheck (advisory)
-        continue-on-error: true
-        run: |
-          sudo apt-get update && sudo apt-get install -y shellcheck
-          shellcheck -s bash confix test/run-tests.sh test/lib/testlib.sh || true

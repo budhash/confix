@@ -1,0 +1,96 @@
+name: release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: verify (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: syntax check
+        run: bash -n confix
+
+      - name: run test suite
+        run: ./test/run-tests.sh -n
+
+      - name: smoke test the released artifact
+        run: |
+          # exercise confix exactly the way the README tells users to
+          printf 'environment=qa\n#debug=false\n' > smoke.properties
+          ./confix -f smoke.properties "environment=prod" ">debug=true" ">added=1"
+          grep -qx 'environment=prod' smoke.properties || { echo "update failed"; exit 1; }
+          grep -qx 'debug=true'       smoke.properties || { echo "uncomment failed"; exit 1; }
+          grep -qx 'added=1'          smoke.properties || { echo "append failed"; exit 1; }
+          echo "smoke test passed"
+
+  release:
+    name: publish release
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: version in confix must match the tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(grep -E '^readonly __APPVERSION=' confix | cut -d= -f2 | tr -d ' "')
+          echo "tag=$tag  __APPVERSION=$version"
+          if [ "$tag" != "$version" ]; then
+            echo "::error file=confix::tag $GITHUB_REF_NAME does not match __APPVERSION=$version - bump the version in confix or retag"
+            exit 1
+          fi
+
+      - name: build checksum
+        run: |
+          shasum -a 256 confix > confix.sha256
+          cat confix.sha256
+
+      - name: collect release notes
+        id: notes
+        run: |
+          previous=$(git tag --sort=-version:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1)
+          {
+            echo "notes<<RELEASE_NOTES_EOF"
+            echo "## confix ${GITHUB_REF_NAME}"
+            echo
+            echo '### Install'
+            echo
+            echo '```'
+            echo "curl -kL https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/confix > confix; chmod +x confix"
+            echo '```'
+            echo
+            if [ -n "$previous" ]; then
+              echo "### Changes since ${previous}"
+              echo
+              git log --no-merges --pretty='- %s' "${previous}..${GITHUB_REF_NAME}"
+            else
+              echo '### Changes'
+              echo
+              git log --no-merges --pretty='- %s' -20
+            fi
+            echo
+            echo "Verify the download with \`shasum -a 256 -c confix.sha256\`."
+            echo "RELEASE_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: create github release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "confix $GITHUB_REF_NAME" \
+            --notes "${{ steps.notes.outputs.notes }}" \
+            confix confix.sha256

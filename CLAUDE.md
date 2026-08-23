@@ -18,7 +18,7 @@ test/run-tests.sh           test runner
 test/lib/testlib.sh         test harness (assertions, sandboxing)
 test/cases/*.sh             test cases, one file per area
 test/data/                  fixture config files
-.github/workflows/ci.yml    CI: runs the suite on Linux and macOS
+.github/workflows/           CI: ci (push), pr (checks + guards), release (tags)
 ```
 
 ## Running the tests
@@ -134,3 +134,30 @@ update the corresponding test in the same commit.
 * Commit messages reference the issue they close (`fixes #6`).
 * `.travis.yml` is retained for historical reasons; CI actually runs through
   GitHub Actions.
+
+## CI and releases
+
+Three workflows, all running the suite on Linux **and** macOS because `confix`
+selects a different `sed` invocation per platform:
+
+* **`ci.yml`** - on pushes to `master` and `claude/**`. Syntax check + suite.
+* **`pr.yml`** - on pull requests into `master`. Suite, advisory `shellcheck`,
+  and a `guards` job that fails the PR if `confix` stops invoking `main "$@"`
+  (the 2021 silent-no-op regression), stops being executable, or starts
+  `source`-ing an external file. It warns when `test/data/` fixtures change.
+* **`release.yml`** - on pushing a `v*` tag. Runs the suite on both platforms,
+  smoke-tests the script the way the README tells users to, then **fails if the
+  tag does not match `__APPVERSION` in `confix`**, and publishes a GitHub
+  Release with `confix` and a SHA256 checksum attached.
+
+Cutting a release:
+
+```bash
+# 1. bump __APPVERSION in confix (it is the source of truth)
+# 2. commit, merge to master, then:
+git tag v1.1 && git push origin v1.1
+```
+
+Renaming `master` to `main` is planned but deliberately not done yet - the
+README install URL points at raw `master` and `raw.githubusercontent.com` does
+not redirect renamed branches, so the rename needs its own step.
