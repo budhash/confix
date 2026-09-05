@@ -48,9 +48,10 @@ first character selects the operation:
 | `<key`       | comment the key out (the line is kept, not deleted)             |
 | `!key`       | delete the key's line entirely (active or commented); no-op if absent |
 
-Flags: `-f` input file, `-o` output file (`-o-` prints to stdout and leaves
-the input alone), `-e` external command file, `-s` separator (default `=`),
-`-c` comment character (default `#`).
+Flags: `-f` input file (`-f -`, or omitting `-f`, reads stdin and writes the
+result to stdout unless `-o` names a file), `-o` output file (`-o-` prints to
+stdout and leaves the input alone), `-e` external command file, `-s` separator
+(default `=`), `-c` comment character (default `#`).
 
 ## Architecture notes
 

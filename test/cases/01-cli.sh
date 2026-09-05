@@ -23,10 +23,17 @@ function test_missing_input_file_names_the_offending_path() {
     assert_contains "$stderr" "ghost.conf"
 }
 
-function test_no_arguments_is_an_error() {
-    confix
-    assert_failure
-    assert_contains "$stderr" "file not found"
+function test_no_arguments_is_a_stdin_passthrough() {
+    # with no -f and no commands, confix reads stdin and writes it back out
+    # unchanged (a "-f <missing file>" still errors - see the tests above)
+    make_file src.properties <<'EOF'
+a=1
+b=2
+EOF
+    confix < src.properties
+    assert_success
+    assert_contains "$stdout" "a=1"
+    assert_contains "$stdout" "b=2"
 }
 
 function test_missing_external_config_is_an_error() {

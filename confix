@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  1.5
+# VERSION:  1.6
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -35,7 +35,7 @@
 # --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=1.5
+readonly __APPVERSION=1.6
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
@@ -239,6 +239,17 @@ function main() {
     __sep_re=$(_escape_re "$__sep_char")
     __cc_re=$(_escape_re "$__comment_char")
 
+    # read config from stdin when the input is "-" (the default). slurp it into
+    # a temp file so the sed/grep machinery has a real file to work on, and -
+    # unless the caller named an explicit -o target - send the result to stdout.
+    local stdin_tmp=""
+    if [ "$input_file" == "-" ]; then
+        stdin_tmp=$(mktemp -t "$__APPNAME.XXXXXXXXXX")
+        $__CAT > "$stdin_tmp"
+        input_file="$stdin_tmp"
+        [ -z "$output_file" ] && output_file="-"
+    fi
+
     # check if file exists
     [[ -e "$input_file" ]] || common::error_exit "file not found : [-f $input_file] - please specify file to be updated"
 
@@ -290,6 +301,9 @@ function main() {
     if [ -f "$backup_file" ]; then
         rm -f "$backup_file"
     fi
+
+    # clean up the temp file used to buffer stdin
+    [ -n "$stdin_tmp" ] && rm -f "$stdin_tmp"
 }
 
 ##
@@ -304,10 +318,12 @@ Options:
     -h                          
         show this message
         
-    -f <file_name>           
+    -f <file_name>
         name of the file that needs to be modified
-   
-    -o <output_file>                            
+        "-" (or omitting -f) reads the config from stdin and, unless -o
+        names a file, writes the result to stdout
+
+    -o <output_file>
         default behavior is to edit/modify the file_name
         "-" prints the modifications to console without updating file_name
 
