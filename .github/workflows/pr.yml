@@ -19,7 +19,7 @@ jobs:
         # matter - GNU sed on linux, BSD sed on macos
         os: [ ubuntu-latest, macos-latest ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: show environment
         run: |
@@ -36,7 +36,7 @@ jobs:
     name: repo guards
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # the fixture guard diffs against the base branch
           fetch-depth: 0
@@ -76,7 +76,7 @@ jobs:
     name: shellcheck (advisory)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: run shellcheck
         continue-on-error: true
         run: |

@@ -143,9 +143,13 @@ accidental.
 
 ## Repository conventions
 
-* Development happens on feature branches; `main` is the release branch, and
-  the `README.md` install URL points at raw `main`, so **anything merged to
-  main is immediately live for every user**.
+* Development happens on feature branches merged into `main` via PR (so CI
+  validates on both GNU and BSD sed before merge).
+* The `README.md` install URL points at
+  `releases/latest/download/confix`, **not** at a branch, so users get the
+  latest *tagged release* — merging to `main` is not live until you cut a new
+  `v*` tag (see "CI and releases"). This is deliberate: it decouples "merged"
+  from "shipped".
 * Commit messages reference the issue they close (`fixes #6`).
 * CI runs through GitHub Actions (see below).
 
