@@ -84,6 +84,10 @@ Each positional argument (and each line of a `-e` file) is one command; the firs
 
       cat log4j.properties | ./confix -f - "log4j.rootLogger=DEBUG,stdout" > log4j-dev.properties
 
+- preview changes as a unified diff without writing (dry run)
+
+      ./confix -d -f log4j.properties "log4j.rootLogger=DEBUG,stdout"
+
 - specify the edit/update commands via external file (log4j.cf) instead of commandline
 
       ./confix -o- -e log4j.cf -f log4j.properties
