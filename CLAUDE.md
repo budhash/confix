@@ -59,7 +59,8 @@ the input alone), `-e` external command file, `-s` separator (default `=`),
   self-contained; don't entangle it with confix-specific logic.
 * **`__map_commands`** picks the right `sed` invocation at runtime. GNU sed
   and BSD/macOS sed disagree about in-place editing, so macOS gets
-  `sed -i .$__TIMESTAMP` (writing a backup that `main` later moves to `/tmp`).
+  `sed -i .$__TIMESTAMP` (writing a backup next to the file that `main` then
+  deletes, so an in-place edit leaves nothing behind on either platform).
   **Any change to a `sed` call must be checked on both platforms** — this has
   broken twice before (issues #3, #5).
 * **`_rexists_config`** is the key-state oracle and returns `0` absent,

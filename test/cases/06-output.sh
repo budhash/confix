@@ -92,6 +92,23 @@ function test_no_backup_files_are_left_behind_with_output_file() {
     assert_eq "" "$_leftovers" "confix left unexpected files in the working directory"
 }
 
+function test_no_backup_is_left_in_tmp_after_inplace_edit() {
+    # macOS edits in place with "sed -i .SUFFIX", which creates a backup;
+    # confix must remove it, not relocate it to /tmp. GNU sed leaves none, so
+    # this passes trivially on linux and guards the macOS path.
+    local _name="confix-backup-check-$$.properties"
+    rm -f "/tmp/${_name}."* 2>/dev/null || true
+    make_file "$_name" <<'EOF'
+a=1
+EOF
+    confix -f "$_name" "a=2"
+    assert_success
+    assert_line "$_name" "a=2"
+    local _leftovers
+    _leftovers=$(ls -A /tmp 2>/dev/null | grep -F "${_name}." || true)
+    assert_eq "" "$_leftovers" "confix left a backup file in /tmp"
+}
+
 function test_repeated_runs_are_stable() {
     fixture simple.properties
     confix -f simple.properties "configuration.environment=prod" ">added=1" "<configuration.name"

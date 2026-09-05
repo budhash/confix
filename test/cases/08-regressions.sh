@@ -40,6 +40,34 @@ EOF
     assert_line app.properties "a.b=99"
 }
 
+function test_value_with_ampersand_is_literal() {
+    # "&" is the whole-match backreference on a sed replacement; it must be
+    # escaped so it lands literally, not expanded to the matched text
+    make_file app.properties <<'EOF'
+k=old
+EOF
+    confix -f app.properties "k=a&b&c"
+    assert_line app.properties "k=a&b&c"
+}
+
+function test_value_with_sed_delimiter_chars_is_literal() {
+    # values containing "/" and "#" (both used historically as the s/// delim)
+    # must be emitted verbatim
+    make_file app.properties <<'EOF'
+k=old
+EOF
+    confix -f app.properties "k=/a/b#c"
+    assert_line app.properties "k=/a/b#c"
+}
+
+function test_value_with_regex_metacharacters_is_literal() {
+    make_file app.properties <<'EOF'
+k=old
+EOF
+    confix -f app.properties 'k=a.*[x]^$'
+    assert_line app.properties 'k=a.*[x]^$'
+}
+
 function test_custom_comment_char_is_used_when_detecting_commented_keys() {
     # "-c" used to be honoured only when commenting out; detection and
     # uncommenting hardcoded "#", so ">key=value" appended a duplicate.
