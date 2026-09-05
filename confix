@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  1.1
+# VERSION:  1.2
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -35,7 +35,7 @@
 # --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=1.1
+readonly __APPVERSION=1.2
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
@@ -240,45 +240,53 @@ function main() {
     __cc_re=$(_escape_re "$__comment_char")
 
     # check if file exists
-    [[ -e $input_file ]] || common::error_exit "file not found : [-f $input_file] - please specify file to be updated"
-    
+    [[ -e "$input_file" ]] || common::error_exit "file not found : [-f $input_file] - please specify file to be updated"
+
     # check if inplace editing is expected
     if [[ ! -z "$output_file" ]]; then
         if [ "$output_file" == "-" ]; then
             #print output to console
             console_output=true
             output_file=$(mktemp -t "$__APPNAME.XXXXXXXXXX")
-        fi    
-        cp -f $input_file $output_file
-        input_file=$output_file
+        fi
+        cp -f "$input_file" "$output_file"
+        input_file="$output_file"
     fi
-    
+
     # read commands from external file
     if [[ ! -z "$config_file" ]]; then
-        [[ -e $config_file ]] || common::error_exit "external config file not found : [-e $config_file]"
-        while IFS=$'\n' read cmd; do
-            if [[ ! "$cmd" =~ \#.* ]] && [[ ! -z "$cmd" ]];then
-                _change_config "$cmd"
-            fi    
-        done < $config_file
-    fi    
-    
-    # iterate through commands passed via commandline    
+        [[ -e "$config_file" ]] || common::error_exit "external config file not found : [-e $config_file]"
+        local _line _trimmed
+        # read -r keeps backslashes literal; the "|| [[ -n ]]" guard runs the
+        # last line even when the file has no trailing newline
+        while IFS= read -r _line || [[ -n "$_line" ]]; do
+            # strip leading blanks so indented lines and the comment check work
+            _trimmed="${_line#"${_line%%[![:blank:]]*}"}"
+            # skip blank lines and lines that start with the comment char.
+            # note: a comment char *inside* a command (e.g. a url fragment) is
+            # data, not a comment, so we only look at the first character.
+            [[ -z "$_trimmed" ]] && continue
+            [[ "$_trimmed" == "$__comment_char"* ]] && continue
+            _change_config "$_trimmed"
+        done < "$config_file"
+    fi
+
+    # iterate through commands passed via commandline
     while test ${#} -gt 0; do
         _change_config "$1"
         shift
     done
-    
+
     # print out the config to console
     if [ "$console_output" == "true" ]; then
-        $__CAT $output_file
-        rm -f $output_file
+        $__CAT "$output_file"
+        rm -f "$output_file"
     fi
-    
+
     # backup file is created on mac
-    local backup_file=${input_file}.${__TIMESTAMP}
-    if [ -f $backup_file ]; then
-        mv $backup_file /tmp/
+    local backup_file="${input_file}.${__TIMESTAMP}"
+    if [ -f "$backup_file" ]; then
+        mv "$backup_file" /tmp/
     fi
 }
 
@@ -399,7 +407,7 @@ function _update_config() {
         _remove_comment "$_key"
     fi
 
-    $__SED "s/^\([[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}[[:blank:]]*\).*/\1${_val_re}/" $input_file
+    $__SED "s/^\([[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}[[:blank:]]*\).*/\1${_val_re}/" "$input_file"
 }
 
 function _add_config() {
@@ -416,8 +424,8 @@ function _add_config() {
         local _key_status=$(_rexists_config "$_key")
         if [ "$_key_status" -eq "0" ]; then
             #key doesn't exist - add it to end of file
-            echo "" >> $input_file
-            echo "$_key$__sep_char$_val" >> $input_file
+            echo "" >> "$input_file"
+            echo "$_key$__sep_char$_val" >> "$input_file"
         else
             _update_config "$1"
         fi
@@ -437,22 +445,22 @@ function _remove_config() {
 function _add_comment() {
     [[ -z "$1" ]] && return    || local _key="$1"
     local _key_re=$(_escape_re "$_key")
-    $__SED "/^[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}/s/^/${__comment_char}/" $input_file
+    $__SED "/^[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}/s/^/${__comment_char}/" "$input_file"
 }
 
 function _remove_comment() {
     [[ -z "$1" ]] && return    || local _key="$1"
     local _key_re=$(_escape_re "$_key")
-    $__SED "s/^[[:blank:]]*${__cc_re}*[[:blank:]]*\(${_key_re}[[:blank:]]*${__sep_re}\)/\1/" $input_file
+    $__SED "s/^[[:blank:]]*${__cc_re}*[[:blank:]]*\(${_key_re}[[:blank:]]*${__sep_re}\)/\1/" "$input_file"
 }
 
 function _rexists_config() {
     [[ -z "$1" ]] && return    || local _key="$1"
     local _key_re=$(_escape_re "$_key")
-    if $__GREP -q "^[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}" $input_file; then
+    if $__GREP -q "^[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}" "$input_file"; then
         common::debug exists-uncommented
         echo 1
-    elif $__GREP -q "^[[:blank:]]*${__cc_re}*[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}" $input_file; then
+    elif $__GREP -q "^[[:blank:]]*${__cc_re}*[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}" "$input_file"; then
         common::debug exists-commented
         echo 2
     else

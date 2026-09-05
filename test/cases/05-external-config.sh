@@ -116,3 +116,63 @@ function test_empty_external_file_is_noop() {
     assert_success
     assert_unchanged simple.properties
 }
+
+function test_comment_char_inside_a_value_is_not_treated_as_a_comment() {
+    # only a comment char at the START of a line (after leading blanks) is a
+    # comment; one inside a value - a url fragment, a colour - is data
+    make_file app.properties <<'EOF'
+url=old
+EOF
+    cat > cmds.cf <<'EOF'
+>url=http://example.com/page#section
+EOF
+    confix -f app.properties -e cmds.cf
+    assert_line app.properties "url=http://example.com/page#section"
+}
+
+function test_external_file_respects_custom_comment_char() {
+    # with -c';' a ';'-led line is the comment and must be skipped, while a
+    # '#'-led line is ordinary data, not a comment
+    make_file app.ini <<'EOF'
+a=1
+EOF
+    cat > cmds.cf <<'EOF'
+; this is the comment line
+a=9
+EOF
+    confix -c';' -f app.ini -e cmds.cf
+    assert_line app.ini "a=9"
+    assert_line_count app.ini 1
+}
+
+function test_external_file_preserves_backslashes_in_values() {
+    # commands are read with "read -r", so backslashes are literal
+    make_file app.properties <<'EOF'
+path=old
+EOF
+    cat > cmds.cf <<'EOF'
+>path=C:\temp\new
+EOF
+    confix -f app.properties -e cmds.cf
+    assert_line app.properties 'path=C:\temp\new'
+}
+
+function test_indented_command_line_in_external_file_is_applied() {
+    # leading blanks on a command line are stripped, so indented commands work
+    make_file app.properties <<'EOF'
+a=1
+EOF
+    printf '    a=9\n' > cmds.cf
+    confix -f app.properties -e cmds.cf
+    assert_line app.properties "a=9"
+}
+
+function test_last_command_without_trailing_newline_is_applied() {
+    # the read loop must still process a final line that has no newline
+    make_file app.properties <<'EOF'
+a=1
+EOF
+    printf 'a=9' > cmds.cf   # deliberately no trailing newline
+    confix -f app.properties -e cmds.cf
+    assert_line app.properties "a=9"
+}
