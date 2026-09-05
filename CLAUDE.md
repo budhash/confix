@@ -65,6 +65,11 @@ the input alone), `-e` external command file, `-s` separator (default `=`),
 * **`_rexists_config`** is the key-state oracle and returns `0` absent,
   `1` present, `2` present-but-commented. `_update_config`, `_add_config` and
   `_remove_config` all branch on it.
+* **`_parse_cmd`** splits a command into key/value on the first `=` only
+  (setting `__pkey` / `__pval` / `__phaseq`); **`_escape_re`** and
+  **`_escape_repl`** make a string safe on the pattern and replacement sides
+  of a `sed` command. Keys always go through `_escape_re`; the separator and
+  comment char are pre-escaped once in `main` as `$__sep_re` / `$__cc_re`.
 * **`main "$@"` on the last line** is what actually runs the tool. It was
   accidentally commented out in the 2021 refactor (commit `43cd08b`), which
   turned confix into a silent no-op for every release since. `bash -n` cannot
@@ -111,20 +116,30 @@ Helpers: `fixture`, `make_file` (heredoc into the sandbox), `confix`, `run`,
 `assert_unchanged` compares a file against the pristine snapshot taken by
 `fixture` or `make_file` — the cleanest way to assert a no-op.
 
-## Known limitations (deliberate, tested)
+## Behaviour notes and fixed regressions
 
-`test/cases/08-known-limitations.sh` pins down current-but-wrong behaviour so
-it stays visible and can only change deliberately. If you fix one of these,
-update the corresponding test in the same commit.
+`test/cases/08-regressions.sh` guards behaviour that used to be broken and was
+pinned as "known limitations". These are now fixed; the tests assert the
+correct behaviour so the fixes cannot silently regress. When touching the
+matching/escaping logic, keep these in mind:
 
-* **Values are truncated at the first space.** Commands are word-split before
-  parsing, so `"key=hello world"` sets `key=hello`. Quoting does not help.
-* **Keys are used as unescaped regexes.** `a.b=9` also rewrites `axb`.
-* **`-c` is only honoured when commenting out.** Detecting and uncommenting a
-  commented key both hardcode `#`, so `>key` cannot re-enable a `;`-commented
-  line, and `>key=value` appends a duplicate instead of uncommenting.
-* **Tabs around the separator are not matched** — only literal spaces.
-* **`-h` exits 1**, because usage printing falls through to the input-file check.
+* **Values may contain spaces and extra separators.** Commands are split into
+  key/value on the *first* `=` only (`_parse_cmd`), so `"key=hello world"` and
+  `"jdbc.url=a;MODE=b"` are preserved. Callers must pass each command quoted.
+* **Keys are matched literally, not as regexes.** `_escape_re` escapes the key
+  (and the separator / comment char) before it goes into a `sed`/`grep`
+  pattern, so `a.b` no longer also matches `axb`.
+* **`-c` is honoured everywhere.** Detection (`_rexists_config`), commenting
+  (`_add_comment`) and uncommenting (`_remove_comment`) all use `$__comment_char`
+  (pre-escaped as `$__cc_re`), so a `;`-commented key is correctly detected,
+  uncommented and updated in place.
+* **Blanks around the key/separator match spaces *and* tabs** — patterns use
+  `[[:blank:]]*`, and the existing whitespace is preserved via the capture group.
+* **`-h` prints usage and exits 0**, so it works as a success-path smoke test.
+
+The one behaviour deliberately kept: **every occurrence of a duplicate key is
+rewritten**, not just the first (sed is line-oriented). This is tested, not
+accidental.
 
 ## Repository conventions
 
