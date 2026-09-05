@@ -2,6 +2,8 @@ language: bash
 
 os:
   - linux
+  - osx
 
 script:
-  - bash test/test-suite.sh
+  - bash -n confix
+  - ./test/run-tests.sh -n

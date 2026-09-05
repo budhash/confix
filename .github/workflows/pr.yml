@@ -1,0 +1,84 @@
+name: pr
+
+on:
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # confix picks a different sed invocation per platform, so both
+        # matter - GNU sed on linux, BSD sed on macos
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: show environment
+        run: |
+          bash --version | head -1
+          sed --version 2>/dev/null | head -1 || echo "sed: BSD"
+
+      - name: syntax check
+        run: bash -n confix
+
+      - name: run test suite
+        run: ./test/run-tests.sh -n
+
+  guards:
+    name: repo guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the fixture guard diffs against the base branch
+          fetch-depth: 0
+
+      - name: confix must actually invoke main
+        run: |
+          # the 2021 refactor shipped a commented-out "#main $@", turning
+          # confix into a silent no-op. bash -n cannot catch that, so
+          # check the call is present and uncommented.
+          if ! grep -qE '^[[:space:]]*main[[:space:]]+"\$@"' confix; then
+            echo "::error file=confix::confix does not invoke main - it would be a silent no-op"
+            exit 1
+          fi
+
+      - name: confix must stay a single self-contained file
+        run: |
+          # the install story is "curl > confix; chmod +x confix", so the
+          # tool must never source or dot-include a sibling file
+          if grep -nE '^[[:space:]]*(source|\.)[[:space:]]+' confix; then
+            echo "::error file=confix::confix sources an external file - it must stay self-contained"
+            exit 1
+          fi
+
+      - name: confix must be executable
+        run: test -x confix || { echo "::error file=confix::confix is not executable"; exit 1; }
+
+      - name: fixtures must be untouched
+        run: |
+          # tests assert against exact fixture bytes, including trailing
+          # newlines - changing one silently rewrites expectations
+          if ! git diff --quiet origin/${{ github.base_ref }} HEAD -- test/data; then
+            echo "::warning::test/data fixtures changed in this PR - confirm this was deliberate"
+            git diff --stat origin/${{ github.base_ref }} HEAD -- test/data
+          fi
+
+  shellcheck:
+    name: shellcheck (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: run shellcheck
+        continue-on-error: true
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck -s bash confix test/run-tests.sh test/lib/testlib.sh || true
