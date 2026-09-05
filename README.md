@@ -5,6 +5,10 @@
 ## Summary
 simple bash script to modify/update configuration files
 
+**Try it in your browser → [budhash.com/confix](https://budhash.com/confix)** — an
+interactive playground that runs confix's command logic client-side (a JavaScript
+port of this script, validated against it).
+
 ## Status
 Stable
 
