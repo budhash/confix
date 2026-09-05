@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  1.3
+# VERSION:  1.4
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -35,7 +35,7 @@
 # --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=1.3
+readonly __APPVERSION=1.4
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
@@ -283,10 +283,12 @@ function main() {
         rm -f "$output_file"
     fi
 
-    # backup file is created on mac
+    # macOS uses "sed -i .SUFFIX", which leaves a backup next to the edited
+    # file (GNU sed with a bare -i leaves none). remove it so an in-place edit
+    # cleans up after itself instead of littering the filesystem.
     local backup_file="${input_file}.${__TIMESTAMP}"
     if [ -f "$backup_file" ]; then
-        mv "$backup_file" /tmp/
+        rm -f "$backup_file"
     fi
 }
 
