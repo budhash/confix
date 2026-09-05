@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>confix — edit config files with a tiny command grammar</title>
-<meta name="description" content="confix edits configuration files (properties, ini, yaml-ish) with a small command grammar — update, add, comment, uncomment, delete keys. Try it in your browser.">
+<meta name="description" content="confix edits configuration files (properties, ini, yaml-ish) with a small command grammar — update, add, comment, uncomment, delete keys. Docs + a live in-browser demo.">
 <meta name="keywords" content="config editor, configuration files, properties editor, ini editor, edit config, comment out config, bash config tool, confix, devops, sed config">
 <link rel="canonical" href="https://budhash.com/confix/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://budhash.com/confix/">
 <meta property="og:title" content="confix — edit config files with a tiny command grammar">
-<meta property="og:description" content="Update, add, comment, uncomment, or delete config keys with a one-line grammar. Try it in your browser.">
+<meta property="og:description" content="Update, add, comment, uncomment, or delete config keys with a one-line grammar. Docs + a live in-browser demo.">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="confix — edit config files with a tiny command grammar">
 <meta name="twitter:description" content="Update, add, comment, uncomment, or delete config keys with a one-line grammar.">
@@ -29,18 +29,40 @@
 </script>
 <link rel="stylesheet" href="theme.css">
 <style>
-  .app { max-width: min(1500px, 95vw); margin: 0 auto; padding: clamp(24px, 4vh, 52px) clamp(20px, 3vw, 48px) 40px; min-height: 100vh; display: flex; flex-direction: column; }
+  .app { max-width: min(1500px, 95vw); margin: 0 auto; padding: clamp(24px, 4vh, 52px) clamp(20px, 3vw, 48px) 48px; }
 
-  header { position: relative; padding-right: 150px; }
+  header { position: relative; padding-right: 104px; }
   .top-links { position: absolute; top: 2px; right: 0; display: inline-flex; align-items: center; gap: 16px; }
   .navlink { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; color: var(--paper-dim); background: none; border: 0; padding: 0; cursor: pointer; transition: color .14s; }
   .navlink:hover { color: var(--accent); }
   .gh-link { display: inline-flex; color: var(--paper-dim); transition: color .14s, transform .14s; }
   .gh-link:hover { color: var(--accent); transform: translateY(-1px); }
   .gh-link svg { display: block; }
-  h1 .dev { color: var(--accent); }
 
-  .controls { display: flex; align-items: center; gap: 14px 18px; flex-wrap: wrap; margin: clamp(20px, 3vh, 34px) 0 14px; }
+  /* section heading: mono eyebrow with a trailing hairline */
+  .section-head { display: flex; align-items: center; gap: 14px; margin: clamp(30px, 5vh, 56px) 0 18px; }
+  .section-head .label { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--paper-dim); white-space: nowrap; }
+  .section-head::after { content: ""; flex: 1 1 auto; height: 1px; background: var(--rule); }
+
+  /* ── details ─────────────────────────────────────────────────────────── */
+  .doc-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: start; }
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--elev); padding: 20px 22px; }
+  .card > .label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-dimmer); display: block; }
+  .card > .label + .label { margin-top: 18px; }
+  .card p { margin: 0 0 10px; color: var(--paper-dim); font-size: 14px; line-height: 1.6; }
+  .card p code, .inline-code { font-family: var(--mono); font-size: 12.5px; background: var(--chip); padding: 1px 5px; border-radius: 4px; color: var(--paper); }
+  pre.code { margin: 8px 0 0; background: var(--well); border: 1px solid var(--rule); border-radius: 8px; padding: 11px 13px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--paper); }
+  pre.code .c { color: var(--paper-dimmer); }
+  .grammar { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+  .grammar td { padding: 5px 8px; border-top: 1px solid var(--rule); vertical-align: top; color: var(--paper-dim); }
+  .grammar tr:first-child td { border-top: 0; }
+  .grammar td:first-child { font-family: var(--mono); color: var(--paper); white-space: nowrap; }
+  .opts { list-style: none; margin: 8px 0 0; padding: 0; }
+  .opts li { display: flex; gap: 10px; padding: 3px 0; color: var(--paper-dim); font-size: 13px; }
+  .opts b { font-family: var(--mono); font-weight: 600; color: var(--paper); flex: 0 0 30px; }
+
+  /* ── demo ────────────────────────────────────────────────────────────── */
+  .controls { display: flex; align-items: center; gap: 14px 18px; flex-wrap: wrap; margin-bottom: 14px; }
   .ctl { display: inline-flex; align-items: center; gap: 7px; }
   .ctl label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper-dimmer); }
   .ctl input { width: 3ch; text-align: center; background: var(--ink-2); color: var(--paper); border: 1px solid var(--rule-hi); border-radius: 6px; padding: 5px 4px; font-family: var(--mono); font-size: 13px; }
@@ -52,47 +74,27 @@
   .seg button { border: 0; border-radius: 0; background: transparent; }
   .seg button.on { background: var(--accent); color: #08090c; }
 
-  .grid { flex: 1 1 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 0; }
-  .col { display: flex; flex-direction: column; min-height: 0; gap: 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .col { display: flex; flex-direction: column; gap: 8px; }
   .lbl { display: flex; align-items: baseline; justify-content: space-between; }
   .lbl .label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-dimmer); }
   .lbl .hint { font-family: var(--mono); font-size: 10.5px; color: var(--paper-dimmer); }
-
   .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--elev); }
-  textarea, .out {
-    width: 100%; color: var(--paper); border-radius: 12px; padding: 14px 16px;
-    font-family: var(--mono); font-size: 14px; line-height: 1.55; resize: none;
-  }
+  textarea, .out { width: 100%; color: var(--paper); border-radius: 12px; padding: 14px 16px; font-family: var(--mono); font-size: 14px; line-height: 1.55; resize: none; }
   textarea { background: var(--surface); border: 1px solid var(--rule); }
   textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,254,0.16); }
-  #config { flex: 1 1 auto; min-height: clamp(200px, 34vh, 420px); }
-  #commands { flex: 0 0 auto; height: clamp(120px, 20vh, 220px); }
-  .out { flex: 1 1 auto; min-height: clamp(340px, 56vh, 660px); background: var(--well); overflow: auto; white-space: pre; }
+  #config { min-height: 220px; }
+  #commands { height: 150px; }
+  .out { min-height: 404px; background: var(--well); overflow: auto; white-space: pre; }
   .out .add { color: var(--green); }
   .out .del { color: var(--red); }
   .out .hunk { color: var(--paper-dimmer); }
   .out:empty::before { content: "…"; color: var(--paper-dimmer); }
 
-  footer { margin-top: 20px; font-size: 12.5px; color: var(--paper-dimmer); }
-
-  .about { max-width: 600px; width: calc(100% - 40px); background: var(--surface); color: var(--paper); border: 1px solid var(--rule-hi); border-radius: 14px; box-shadow: var(--elev); padding: 0; }
-  .about::backdrop { background: rgba(4,5,8,0.72); }
-  .about-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--rule); }
-  .about-head h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 22px; }
-  .about-close { font: inherit; font-size: 18px; line-height: 1; color: var(--paper-dim); background: none; border: 0; cursor: pointer; padding: 4px; }
-  .about-close:hover { color: var(--accent); }
-  .about-body { padding: 18px 22px 22px; }
-  .about-body h3 { margin: 18px 0 6px; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--paper-dimmer); }
-  .about-body h3:first-child { margin-top: 0; }
-  .about-body p { margin: 0 0 6px; color: var(--paper-dim); font-size: 14px; line-height: 1.6; }
-  .about-body code { font-family: var(--mono); font-size: 12.5px; background: var(--chip); padding: 1px 5px; border-radius: 4px; color: var(--paper); }
-  .grammar { width: 100%; border-collapse: collapse; margin: 4px 0; font-size: 13px; }
-  .grammar td { padding: 4px 8px; border-top: 1px solid var(--rule); vertical-align: top; color: var(--paper-dim); }
-  .grammar td:first-child { font-family: var(--mono); color: var(--paper); white-space: nowrap; }
+  footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--paper-dimmer); }
 
   @media (max-width: 820px) {
-    .grid { grid-template-columns: 1fr; }
-    .out { min-height: 260px; }
+    .doc-grid, .grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -101,15 +103,53 @@
   <header>
     <div class="top-links">
       <a class="navlink" href="/">home</a>
-      <button type="button" class="navlink" id="aboutOpen">about</button>
       <a class="gh-link" href="https://github.com/budhash/confix" target="_blank" rel="noopener" aria-label="View confix source on GitHub" title="View source on GitHub">
         <svg viewBox="0 0 16 16" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path></svg>
       </a>
     </div>
-    <div class="eyebrow">config editor · runs in your browser</div>
+    <div class="eyebrow">config editor · bash · runs anywhere</div>
     <h1>confix</h1>
-    <p class="subtitle">Edit configuration files with a tiny command grammar — update, add, comment, uncomment, or delete keys. This playground runs confix's logic client-side (a JavaScript port of the bash tool, validated against it).</p>
+    <p class="subtitle">A small, dependency-free bash script that edits configuration files in place with a tiny command grammar — update, add, comment, uncomment, or delete keys.</p>
   </header>
+
+  <!-- ── Part 1: the tool ────────────────────────────────────────────── -->
+  <div class="section-head"><span class="label">the tool</span></div>
+  <div class="doc-grid">
+    <div class="card">
+      <span class="label">install</span>
+      <p>Grab the latest released script (branch-independent), make it executable:</p>
+      <pre class="code">curl -kL https://github.com/budhash/confix/releases/latest/download/confix &gt; confix
+chmod +x confix</pre>
+      <span class="label">options</span>
+      <ul class="opts">
+        <li><b>-f</b><span>input file (or <span class="inline-code">-f -</span> / omit to read stdin)</span></li>
+        <li><b>-o</b><span>output file; <span class="inline-code">-o-</span> prints to stdout, leaving the input untouched</span></li>
+        <li><b>-d</b><span>dry run — print a unified diff, write nothing</span></li>
+        <li><b>-e</b><span>read commands from a file (one per line)</span></li>
+        <li><b>-s</b><span>separator character (default <span class="inline-code">=</span>)</span></li>
+        <li><b>-c</b><span>comment character (default <span class="inline-code">#</span>)</span></li>
+      </ul>
+      <span class="label">example</span>
+      <pre class="code"><span class="c"># update a port, enable a flag, comment one out, add a timeout</span>
+confix -f app.properties "port=9090" "&gt;debug=true" "&lt;log.level" "&gt;timeout=30"</pre>
+    </div>
+    <div class="card">
+      <span class="label">commands</span>
+      <p>Each argument (or each line of a <span class="inline-code">-e</span> file) is one command; the first character selects the operation. Key/value split on the first <span class="inline-code">=</span>, independent of the file separator.</p>
+      <table class="grammar">
+        <tr><td>key=value</td><td>update an existing key (no-op if the key is absent)</td></tr>
+        <tr><td>&gt;key=value</td><td>set the key, appending it to the file if absent</td></tr>
+        <tr><td>&gt;key</td><td>uncomment an existing key</td></tr>
+        <tr><td>&lt;key</td><td>comment out an existing key (the line is kept)</td></tr>
+        <tr><td>!key</td><td>delete the key's line entirely (active or commented)</td></tr>
+      </table>
+      <p style="margin-top:14px">More examples and the full reference are in the <a href="https://github.com/budhash/confix" rel="noopener">README</a>.</p>
+    </div>
+  </div>
+
+  <!-- ── Part 2: the demo ────────────────────────────────────────────── -->
+  <div class="section-head"><span class="label">playground</span></div>
+  <p class="subtitle" style="margin:0 0 18px">Runs confix's command logic client-side — a JavaScript port of the bash script, validated against its output. Nothing is sent anywhere.</p>
 
   <div class="controls">
     <div class="ctl"><label for="sep">separator</label><input id="sep" value="=" maxlength="3" spellcheck="false"></div>
@@ -139,35 +179,6 @@
   <footer>
     Runs the <a href="https://github.com/budhash/confix" rel="noopener">confix</a> command logic in your browser · Apache-2.0.
   </footer>
-
-  <dialog id="about" class="about">
-    <div class="about-head">
-      <h2>About confix</h2>
-      <button type="button" class="about-close" id="aboutClose" aria-label="Close">✕</button>
-    </div>
-    <div class="about-body">
-      <p><strong>confix</strong> is a small, dependency-free <strong>bash</strong> script that edits configuration files in place — properties, ini, yaml-ish, anything with <code>key</code><em>separator</em><code>value</code> lines. Point it at a file, give it one-line commands, done.</p>
-
-      <h3>Command grammar</h3>
-      <table class="grammar">
-        <tr><td>key=value</td><td>update an existing key (no-op if absent)</td></tr>
-        <tr><td>&gt;key=value</td><td>set the key, appending it if absent</td></tr>
-        <tr><td>&gt;key</td><td>uncomment an existing key</td></tr>
-        <tr><td>&lt;key</td><td>comment out an existing key</td></tr>
-        <tr><td>!key</td><td>delete the key's line (active or commented)</td></tr>
-      </table>
-      <p>The <em>separator</em> (default <code>=</code>) and <em>comment</em> char (default <code>#</code>) are configurable. Commands always split key/value on the first <code>=</code>, independent of the file separator.</p>
-
-      <h3>About this demo</h3>
-      <p>The real tool is the bash script; this page reproduces its edits in JavaScript so it can run entirely client-side (nothing is sent anywhere). The port is validated against the bash script's own output.</p>
-
-      <p>
-        <a href="https://github.com/budhash/confix" rel="noopener">Source</a> ·
-        <a href="https://github.com/budhash/confix/releases/latest" rel="noopener">Download</a> ·
-        Apache-2.0
-      </p>
-    </div>
-  </dialog>
 </main>
 
 <script src="confix.js"></script>
@@ -176,7 +187,6 @@
   const config = $("config"), commands = $("commands"), sep = $("sep"), comment = $("comment"), out = $("out");
   let view = "result";
 
-  // minimal LCS line diff for the "diff" view
   function lineDiff(a, b) {
     const A = a.length ? a.split("\n") : [], B = b.length ? b.split("\n") : [];
     const n = A.length, m = B.length;
@@ -184,8 +194,7 @@
     for (let i = n - 1; i >= 0; i--)
       for (let j = m - 1; j >= 0; j--)
         dp[i][j] = A[i] === B[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-    const rows = [];
-    let i = 0, j = 0;
+    const rows = []; let i = 0, j = 0;
     while (i < n && j < m) {
       if (A[i] === B[j]) { rows.push([" ", A[i]]); i++; j++; }
       else if (dp[i + 1][j] >= dp[i][j + 1]) { rows.push(["-", A[i]]); i++; }
@@ -195,23 +204,19 @@
     while (j < m) rows.push(["+", B[j++]]);
     return rows;
   }
-
   const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
   function render() {
     const src = config.value;
     const cmds = confix.parseCommandBlock(commands.value, comment.value || "#");
     const result = confix.apply(src, cmds, { sep: sep.value, comment: comment.value });
-    if (view === "result") {
-      out.textContent = result;
-    } else {
-      const rows = lineDiff(src.replace(/\n$/, ""), result.replace(/\n$/, ""));
-      if (rows.every((r) => r[0] === " ")) { out.innerHTML = '<span class="hunk">no changes</span>'; return; }
-      out.innerHTML = rows.map(([s, l]) => {
-        const cls = s === "+" ? "add" : s === "-" ? "del" : "";
-        return '<span class="' + cls + '">' + esc(s + " " + l) + "</span>";
-      }).join("\n");
-    }
+    if (view === "result") { out.textContent = result; return; }
+    const rows = lineDiff(src.replace(/\n$/, ""), result.replace(/\n$/, ""));
+    if (rows.every((r) => r[0] === " ")) { out.innerHTML = '<span class="hunk">no changes</span>'; return; }
+    out.innerHTML = rows.map(([s, l]) => {
+      const cls = s === "+" ? "add" : s === "-" ? "del" : "";
+      return '<span class="' + cls + '">' + esc(s + " " + l) + "</span>";
+    }).join("\n");
   }
 
   for (const el of [config, commands, sep, comment]) el.addEventListener("input", render);
@@ -225,7 +230,6 @@
   }
   $("viewResult").addEventListener("click", () => setView("result"));
   $("viewDiff").addEventListener("click", () => setView("diff"));
-
   $("sample").addEventListener("click", () => {
     config.value = "# app config\nhost=localhost\nport=8080\n#debug=false\nlog.level=INFO\n";
     commands.value = "port=9090\n>debug=true\n<log.level\n>timeout=30";
@@ -233,12 +237,6 @@
     render(); config.focus();
   });
   $("clear").addEventListener("click", () => { config.value = ""; commands.value = ""; render(); config.focus(); });
-
-  // About dialog
-  const about = $("about");
-  $("aboutOpen").addEventListener("click", () => about.showModal());
-  $("aboutClose").addEventListener("click", () => about.close());
-  about.addEventListener("click", (e) => { if (e.target === about) about.close(); });
 
   render();
 </script>
