@@ -27,7 +27,14 @@ See Usage and Examples for more details.
 
 ## Installing
 
-    curl -k https://raw.githubusercontent.com/budhash/confix/main/confix > confix; chmod +x confix
+Download the latest released `confix` (branch-independent, always the most recent tag):
+
+    curl -kL https://github.com/budhash/confix/releases/latest/download/confix > confix; chmod +x confix
+
+Optionally verify the download against its published checksum:
+
+    curl -kLO https://github.com/budhash/confix/releases/latest/download/confix.sha256
+    shasum -a 256 -c confix.sha256
 
 ## Examples
 - remove (comment out) an existing config element
@@ -64,8 +71,8 @@ See Usage and Examples for more details.
 
 - execute directly via curl + bash 
 
-      curl -sk https://raw.githubusercontent.com/budhash/confix/main/confix | bash /dev/stdin -o- -f test/data/log4j.properties "log4j.rootLogger=DEBUG,stdout"
-      curl -sk https://raw.githubusercontent.com/budhash/confix/main/confix | bash /dev/stdin -o- -e test/data/log4j.cf -f test/data/log4j.properties
+      curl -skL https://github.com/budhash/confix/releases/latest/download/confix | bash /dev/stdin -o- -f test/data/log4j.properties "log4j.rootLogger=DEBUG,stdout"
+      curl -skL https://github.com/budhash/confix/releases/latest/download/confix | bash /dev/stdin -o- -e test/data/log4j.cf -f test/data/log4j.properties
 
 ## Limitations
 * Only tested on Mac (Sierra and above) and Ubuntu 
