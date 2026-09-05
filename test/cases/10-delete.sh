@@ -112,6 +112,18 @@ EOF
     assert_unchanged app.properties
 }
 
+function test_delete_is_idempotent() {
+    make_file app.properties <<'EOF'
+a=1
+b=2
+EOF
+    confix -f app.properties "!a"
+    local _once
+    _once=$(cat app.properties)
+    confix -f app.properties "!a"
+    assert_eq "$_once" "$(cat app.properties)" "deleting an already-absent key should be a no-op"
+}
+
 function test_delete_uses_configured_separator() {
     make_file app.yaml <<'EOF'
 kept: 1

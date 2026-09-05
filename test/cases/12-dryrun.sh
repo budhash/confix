@@ -74,6 +74,31 @@ EOF
     assert_unchanged app.properties
 }
 
+function test_dryrun_with_external_command_file() {
+    make_file app.properties <<'EOF'
+a=1
+b=2
+EOF
+    cat > cmds.cf <<'EOF'
+a=9
+!b
+EOF
+    confix -d -f app.properties -e cmds.cf
+    assert_contains "$stdout" "+a=9"
+    assert_contains "$stdout" "-b=2"
+    assert_unchanged app.properties
+}
+
+function test_dryrun_respects_custom_separator() {
+    make_file app.yaml <<'EOF'
+key: old
+EOF
+    confix -d -s':' -f app.yaml "key=new"
+    assert_contains "$stdout" "-key: old"
+    assert_contains "$stdout" "+key: new"
+    assert_unchanged app.yaml
+}
+
 function test_dryrun_leaves_no_temp_files_behind() {
     make_file app.properties <<'EOF'
 a=1
