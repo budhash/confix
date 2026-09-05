@@ -136,6 +136,15 @@ matching/escaping logic, keep these in mind:
 * **Blanks around the key/separator match spaces *and* tabs** — patterns use
   `[[:blank:]]*`, and the existing whitespace is preserved via the capture group.
 * **`-h` prints usage and exits 0**, so it works as a success-path smoke test.
+* **`-e` files are parsed correctly.** Lines are read with `read -r` (literal
+  backslashes); a line is a comment only when its *first non-blank* character
+  is the comment char (so a `#`/`;` inside a value is data); leading blanks on
+  a command are stripped; and the final line is processed even without a
+  trailing newline. See `05-external-config.sh`.
+* **Paths may contain spaces.** Every expansion of `$input_file` /
+  `$output_file` / `$config_file` / the mac backup file is quoted. `$__SED` and
+  `$__GREP` stay *unquoted* on purpose - they carry their own arguments. See
+  `09-filenames.sh`.
 
 The one behaviour deliberately kept: **every occurrence of a duplicate key is
 rewritten**, not just the first (sed is line-oriented). This is tested, not
