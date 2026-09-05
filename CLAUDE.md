@@ -192,6 +192,6 @@ Cutting a release:
 
 ```bash
 # 1. bump __APPVERSION in confix (it is the source of truth)
-# 2. commit, merge to main, then:
-git tag v1.1 && git push origin v1.1
+# 2. commit, merge to main, then tag with the matching version:
+git tag vX.Y && git push origin vX.Y
 ```

@@ -36,6 +36,20 @@ Optionally verify the download against its published checksum:
     curl -kLO https://github.com/budhash/confix/releases/latest/download/confix.sha256
     shasum -a 256 -c confix.sha256
 
+## Options
+
+| Option | Meaning                                                                        |
+| ------ | ------------------------------------------------------------------------------ |
+| `-f`   | input file to modify; `-f -` (or omitting `-f`) reads stdin                     |
+| `-o`   | output file; `-o-` prints to stdout and leaves the input file untouched         |
+| `-d`   | dry run — print a unified diff of what would change and write nothing           |
+| `-e`   | external command file (one command per line)                                   |
+| `-s`   | separator character (default `=`)                                              |
+| `-c`   | comment character (default `#`)                                               |
+| `-h`   | show help                                                                      |
+
+When neither `-o` nor an in-place file applies (i.e. reading from stdin), the result is written to stdout.
+
 ## Commands
 Each positional argument (and each line of a `-e` file) is one command; the first character selects the operation:
 
