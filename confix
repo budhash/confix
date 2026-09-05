@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  1.0
+# VERSION:  1.1
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -35,7 +35,7 @@
 # --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=1.0
+readonly __APPVERSION=1.1
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
@@ -224,7 +224,7 @@ function main() {
     # parse commandline
     while getopts "hf:o:e:s:c:" OPTION; do
         case "$OPTION" in
-            h) _usage;;
+            h) _usage; exit 0;;
             f) input_file=$OPTARG;;
             o) output_file=$OPTARG;;
             e) config_file=$OPTARG;;
@@ -234,8 +234,11 @@ function main() {
          esac
     done
     shift $((OPTIND-1))
-    
-    
+
+    # pre-escape the separator and comment char once for safe use in patterns
+    __sep_re=$(_escape_re "$__sep_char")
+    __cc_re=$(_escape_re "$__comment_char")
+
     # check if file exists
     [[ -e $input_file ]] || common::error_exit "file not found : [-f $input_file] - please specify file to be updated"
     
@@ -341,47 +344,73 @@ EOF
     fi
 }
 
+##
+# @info     escape a string for literal use inside a POSIX basic regex
+#           (sed/grep pattern side). handles . * [ ] ^ $ \ and the / delimiter.
+##
+function _escape_re() { printf '%s' "$1" | sed 's/[][\.*^$/]/\\&/g'; }
+
+##
+# @info     escape a string for literal use on the replacement side of a
+#           sed s/// command with a / delimiter. handles \ & and /.
+##
+function _escape_repl() { printf '%s' "$1" | sed 's/[&/\]/\\&/g'; }
+
+##
+# @info     split a command into key/value on the FIRST '=' only, so values
+#           may contain spaces and further '=' characters. sets the globals
+#           __pkey, __pval and __phaseq (1 when an '=' was present).
+##
+function _parse_cmd() {
+    if [[ "$1" == *=* ]]; then
+        __pkey="${1%%=*}"
+        __pval="${1#*=}"
+        __phaseq=1
+    else
+        __pkey="$1"
+        __pval=""
+        __phaseq=0
+    fi
+}
+
 function _change_config() {
-    local _cmd="$@"
+    local _cmd="$1"
 
     if [[ $_cmd == ">"* ]]; then
-        _add_config ${_cmd#">"}
+        _add_config "${_cmd#">"}"
     elif [[ $_cmd == "<"* ]]; then
-        _remove_config ${_cmd#"<"}
-    else        
-        _update_config $_cmd
-    fi    
+        _remove_config "${_cmd#"<"}"
+    else
+        _update_config "$_cmd"
+    fi
 }
 
 function _update_config() {
-    local _cmd_param=(${1//=/ })
-    local _key=${_cmd_param[0]}
+    _parse_cmd "$1"
+    local _key="$__pkey"
+    local _val="$__pval"
     [[ -z "$_key" ]] && return
-    
-    _cmd_param=( "${_cmd_param[@]:1}" ) 
-    local _val=$(common::join_by '=' ${_cmd_param[@]})
+
+    local _key_re=$(_escape_re "$_key")
+    local _val_re=$(_escape_repl "$_val")
 
     local _key_status=$(_rexists_config "$_key")
-    if [ "$_key_status" -eq "2" ]; then    
-        _remove_comment $_key
+    if [ "$_key_status" -eq "2" ]; then
+        _remove_comment "$_key"
     fi
-    
-    if [[ "$_val" ==  *\/* ]] ; then
-      $__SED "s#\($_key *$__sep_char *\).*#\1$_val#" $input_file
-    else
-      $__SED "s/\($_key *$__sep_char *\).*/\1$_val/" $input_file
-    fi
+
+    $__SED "s/^\([[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}[[:blank:]]*\).*/\1${_val_re}/" $input_file
 }
 
 function _add_config() {
-    local _cmd_param=(${1//=/ })
-    local _key=${_cmd_param[0]} 
+    _parse_cmd "$1"
+    local _key="$__pkey"
+    local _val="$__pval"
+    local _haseq="$__phaseq"
     [[ -z "$_key" ]] && return
-    
-    _cmd_param=( "${_cmd_param[@]:1}" ) 
-    local _val=`common::join_by '=' ${_cmd_param[@]}`
-    
-    if [ -z "$_val" ]; then
+
+    if [ "$_haseq" -eq 0 ]; then
+        # ">key" form - uncomment an existing key
         _remove_comment "$_key"
     else
         local _key_status=$(_rexists_config "$_key")
@@ -389,38 +418,41 @@ function _add_config() {
             #key doesn't exist - add it to end of file
             echo "" >> $input_file
             echo "$_key$__sep_char$_val" >> $input_file
-        else    
-            _update_config "$@"
+        else
+            _update_config "$1"
         fi
     fi
 }
 
 function _remove_config() {
-    local _cmd_param=(${1//=/ })
-    local _key=${_cmd_param[0]}
+    _parse_cmd "$1"
+    local _key="$__pkey"
     [[ -z "$_key" ]] && return
-    
+
     if [ "$(_rexists_config "$_key")" -eq "1" ]; then
         _add_comment "$_key"
-    fi    
+    fi
 }
 
 function _add_comment() {
     [[ -z "$1" ]] && return    || local _key="$1"
-    $__SED "/$_key[ ]*$__sep_char/s/^/$__comment_char/" $input_file
+    local _key_re=$(_escape_re "$_key")
+    $__SED "/^[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}/s/^/${__comment_char}/" $input_file
 }
 
 function _remove_comment() {
     [[ -z "$1" ]] && return    || local _key="$1"
-    $__SED "s/^[ #]*\($_key[ ]*$__sep_char\)/\1/" $input_file
+    local _key_re=$(_escape_re "$_key")
+    $__SED "s/^[[:blank:]]*${__cc_re}*[[:blank:]]*\(${_key_re}[[:blank:]]*${__sep_re}\)/\1/" $input_file
 }
 
 function _rexists_config() {
     [[ -z "$1" ]] && return    || local _key="$1"
-    if $__GREP -q "^[ ]*$_key[ ]*$__sep_char" $input_file; then
+    local _key_re=$(_escape_re "$_key")
+    if $__GREP -q "^[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}" $input_file; then
         common::debug exists-uncommented
         echo 1
-    elif $__GREP -q "^[ #]*$_key[ ]*$__sep_char" $input_file; then
+    elif $__GREP -q "^[[:blank:]]*${__cc_re}*[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}" $input_file; then
         common::debug exists-commented
         echo 2
     else
