@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  1.6
+# VERSION:  1.7
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -35,7 +35,7 @@
 # --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=1.6
+readonly __APPVERSION=1.7
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
@@ -218,13 +218,15 @@ function main() {
     output_file=""
     config_file=
     console_output=false
+    dryrun=false
     __sep_char="="
     __comment_char="#"
 
     # parse commandline
-    while getopts "hf:o:e:s:c:" OPTION; do
+    while getopts "hdf:o:e:s:c:" OPTION; do
         case "$OPTION" in
             h) _usage; exit 0;;
+            d) dryrun=true;;
             f) input_file=$OPTARG;;
             o) output_file=$OPTARG;;
             e) config_file=$OPTARG;;
@@ -247,14 +249,28 @@ function main() {
         stdin_tmp=$(mktemp -t "$__APPNAME.XXXXXXXXXX")
         $__CAT > "$stdin_tmp"
         input_file="$stdin_tmp"
-        [ -z "$output_file" ] && output_file="-"
+        # default to stdout, unless -o names a file or this is a dry run
+        [ -z "$output_file" ] && [ "$dryrun" != "true" ] && output_file="-"
     fi
 
     # check if file exists
     [[ -e "$input_file" ]] || common::error_exit "file not found : [-f $input_file] - please specify file to be updated"
 
-    # check if inplace editing is expected
-    if [[ ! -z "$output_file" ]]; then
+    # a friendly name for the input, used in dry-run diff labels
+    local src_name
+    if [ -n "$stdin_tmp" ]; then src_name="(stdin)"; else src_name="$input_file"; fi
+
+    # decide where edits are applied. dry run and console output both edit a
+    # throwaway copy so the real input is never touched; a plain -o edits the
+    # named output file; otherwise the edit is in place.
+    local diff_original=""
+    if [ "$dryrun" == "true" ]; then
+        diff_original="$input_file"
+        local _work
+        _work=$(mktemp -t "$__APPNAME.XXXXXXXXXX")
+        cp -f "$input_file" "$_work"
+        input_file="$_work"
+    elif [[ ! -z "$output_file" ]]; then
         if [ "$output_file" == "-" ]; then
             #print output to console
             console_output=true
@@ -288,8 +304,12 @@ function main() {
         shift
     done
 
-    # print out the config to console
-    if [ "$console_output" == "true" ]; then
+    # emit results
+    if [ "$dryrun" == "true" ]; then
+        # show a unified diff of what would change; write nothing
+        diff -u -L "$src_name" -L "$src_name (confix)" "$diff_original" "$input_file"
+        rm -f "$input_file"
+    elif [ "$console_output" == "true" ]; then
         $__CAT "$output_file"
         rm -f "$output_file"
     fi
@@ -326,6 +346,9 @@ Options:
     -o <output_file>
         default behavior is to edit/modify the file_name
         "-" prints the modifications to console without updating file_name
+
+    -d
+        dry run: print a unified diff of what would change and write nothing
 
     -e <external_command_file>                            
         pick up edit commands from external file. 

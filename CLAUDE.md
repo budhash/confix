@@ -10,7 +10,7 @@ anything else shaped like `key<separator>value`. It is designed to be
 `curl`-ed onto a box and run, so **the whole tool is one file: `confix`**.
 
 There is no build step, no package manifest and no runtime dependency beyond
-`bash`, `sed`, `grep` and `cat`.
+`bash`, `sed`, `grep` and `cat` (plus `diff` for the `-d` dry-run flag).
 
 ```
 confix                      the entire tool
@@ -50,8 +50,12 @@ first character selects the operation:
 
 Flags: `-f` input file (`-f -`, or omitting `-f`, reads stdin and writes the
 result to stdout unless `-o` names a file), `-o` output file (`-o-` prints to
-stdout and leaves the input alone), `-e` external command file, `-s` separator
+stdout and leaves the input alone), `-d` dry run (print a unified diff of what
+would change and write nothing), `-e` external command file, `-s` separator
 (default `=`), `-c` comment character (default `#`).
+
+`-d` is the one feature that shells out to `diff` (POSIX); everything else
+needs only `bash` / `sed` / `grep` / `cat`.
 
 ## Architecture notes
 
