@@ -1,11 +1,12 @@
 # confix
 [![ci](https://github.com/budhash/confix/actions/workflows/ci.yml/badge.svg)](https://github.com/budhash/confix/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/budhash/confix)](https://github.com/budhash/confix/releases/latest)
 
 ## Summary
 simple bash script to modify/update configuration files
 
-## Status 
-BETA
+## Status
+Stable
 
 ## License
 Licensed under the Apache License, Version 2.0 (the "License");
