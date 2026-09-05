@@ -128,20 +128,19 @@ update the corresponding test in the same commit.
 
 ## Repository conventions
 
-* Development happens on feature branches; `master` is the release branch, and
-  the `README.md` install URL points at raw `master`, so **anything merged to
-  master is immediately live for every user**.
+* Development happens on feature branches; `main` is the release branch, and
+  the `README.md` install URL points at raw `main`, so **anything merged to
+  main is immediately live for every user**.
 * Commit messages reference the issue they close (`fixes #6`).
-* `.travis.yml` is retained for historical reasons; CI actually runs through
-  GitHub Actions.
+* CI runs through GitHub Actions (see below).
 
 ## CI and releases
 
 Three workflows, all running the suite on Linux **and** macOS because `confix`
 selects a different `sed` invocation per platform:
 
-* **`ci.yml`** - on pushes to `master` and `claude/**`. Syntax check + suite.
-* **`pr.yml`** - on pull requests into `master`. Suite, advisory `shellcheck`,
+* **`ci.yml`** - on pushes to `main` and `claude/**`. Syntax check + suite.
+* **`pr.yml`** - on pull requests into `main`. Suite, advisory `shellcheck`,
   and a `guards` job that fails the PR if `confix` stops invoking `main "$@"`
   (the 2021 silent-no-op regression), stops being executable, or starts
   `source`-ing an external file. It warns when `test/data/` fixtures change.
@@ -154,10 +153,6 @@ Cutting a release:
 
 ```bash
 # 1. bump __APPVERSION in confix (it is the source of truth)
-# 2. commit, merge to master, then:
+# 2. commit, merge to main, then:
 git tag v1.1 && git push origin v1.1
 ```
-
-Renaming `master` to `main` is planned but deliberately not done yet - the
-README install URL points at raw `master` and `raw.githubusercontent.com` does
-not redirect renamed branches, so the rename needs its own step.

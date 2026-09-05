@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [ master, 'claude/**' ]
+    branches: [ main, 'claude/**' ]
   workflow_dispatch:
 
 permissions:

@@ -1,9 +1,0 @@
-language: bash
-
-os:
-  - linux
-  - osx
-
-script:
-  - bash -n confix
-  - ./test/run-tests.sh -n

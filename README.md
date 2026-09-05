@@ -1,5 +1,5 @@
 # confix
-[![Build Status](https://travis-ci.org/budhash/confix.png?branch=master)](https://travis-ci.org/budhash/confix)
+[![ci](https://github.com/budhash/confix/actions/workflows/ci.yml/badge.svg)](https://github.com/budhash/confix/actions/workflows/ci.yml)
 
 ## Summary
 simple bash script to modify/update configuration files
@@ -27,7 +27,7 @@ See Usage and Examples for more details.
 
 ## Installing
 
-    curl -k https://raw.githubusercontent.com/budhash/confix/master/confix > confix; chmod +x confix
+    curl -k https://raw.githubusercontent.com/budhash/confix/main/confix > confix; chmod +x confix
 
 ## Examples
 - remove (comment out) an existing config element
@@ -64,8 +64,8 @@ See Usage and Examples for more details.
 
 - execute directly via curl + bash 
 
-      curl -sk https://raw.githubusercontent.com/budhash/confix/master/confix | bash /dev/stdin -o- -f test/data/log4j.properties "log4j.rootLogger=DEBUG,stdout"
-      curl -sk https://raw.githubusercontent.com/budhash/confix/master/confix | bash /dev/stdin -o- -e test/data/log4j.cf -f test/data/log4j.properties
+      curl -sk https://raw.githubusercontent.com/budhash/confix/main/confix | bash /dev/stdin -o- -f test/data/log4j.properties "log4j.rootLogger=DEBUG,stdout"
+      curl -sk https://raw.githubusercontent.com/budhash/confix/main/confix | bash /dev/stdin -o- -e test/data/log4j.cf -f test/data/log4j.properties
 
 ## Limitations
 * Only tested on Mac (Sierra and above) and Ubuntu 
@@ -77,7 +77,7 @@ See Usage and Examples for more details.
 budhash (at) gmail
 
 ## Download
-You can download this project in either [zip](http://github.com/budhash/confix/zipball/master) or [tar](http://github.com/budhash/confix/tarball/master) formats.
+You can download this project in either [zip](http://github.com/budhash/confix/zipball/main) or [tar](http://github.com/budhash/confix/tarball/main) formats.
 
 Or simply clone the project with [Git](http://git-scm.com/) by running:
 
