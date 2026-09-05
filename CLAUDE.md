@@ -145,6 +145,10 @@ matching/escaping logic, keep these in mind:
   `$output_file` / `$config_file` / the mac backup file is quoted. `$__SED` and
   `$__GREP` stay *unquoted* on purpose - they carry their own arguments. See
   `09-filenames.sh`.
+* **Appending a new key adds no blank line.** `_add_config` writes the key on
+  its own line and only inserts a separating newline when the file is non-empty
+  and does not already end in one, so repeated appends stay flush. See
+  `03-add.sh`.
 
 The one behaviour deliberately kept: **every occurrence of a duplicate key is
 rewritten**, not just the first (sed is line-oriented). This is tested, not

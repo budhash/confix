@@ -94,12 +94,30 @@ EOF
     assert_eq "$_once" "$(cat app.properties)" "adding the same key twice should not duplicate it"
 }
 
-function test_add_appends_blank_separator_line_when_file_ends_with_newline() {
-    # documents the current layout of appended entries: confix writes an
-    # empty line before the new key
+function test_add_appends_without_a_blank_separator_line() {
+    # a new key is appended directly after the existing content, with no
+    # spurious blank line in between
     make_file app.properties <<'EOF'
 existing=1
 EOF
     confix -f app.properties ">brand.new=hello"
-    assert_eq "" "$(sed -n '2p' app.properties)" "expected a blank line between old content and the new key"
+    assert_eq "brand.new=hello" "$(sed -n '2p' app.properties)" "new key should be on the line directly after the existing content"
+    assert_line_count app.properties 2
+}
+
+function test_add_multiple_new_keys_leaves_no_blank_lines() {
+    make_file app.properties <<'EOF'
+existing=1
+EOF
+    confix -f app.properties ">one=1" ">two=2" ">three=3"
+    assert_line_count app.properties 4
+    assert_eq "0" "$(grep -c '^$' app.properties)" "appending keys should not introduce blank lines"
+}
+
+function test_add_to_file_without_trailing_newline_keeps_key_on_its_own_line() {
+    printf 'existing=1' > app.properties   # no trailing newline
+    confix -f app.properties ">brand.new=hello"
+    assert_line app.properties "existing=1"
+    assert_line app.properties "brand.new=hello"
+    assert_line_count app.properties 2
 }
