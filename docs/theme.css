@@ -1,0 +1,141 @@
+/* =============================================================================
+   theme.css — budhash.com shared design system
+   -----------------------------------------------------------------------------
+   The canonical dark, warm theme for budhash.com and its tools. Vendor this file
+   into a tool (copy it, or link it) and build the page from its tokens and
+   primitives. Self-contained: no @import, no web fonts (system fonts only), so a
+   page that links or inlines it renders offline with zero network.
+
+   Layers:
+     1. tokens      — color / type / elevation custom properties (the API)
+     2. page        — reset, body backdrop (glow + blueprint grid + grain)
+     3. typography  — eyebrow, hero (h1), lede/subtitle, label
+     4. primitives  — panel, pill, tag, rule  (generic; no app-specific components)
+
+   Design intent: off-white paper on deep ink, serif display headings, mono
+   eyebrows/labels, hairline rules, a matte raised panel. Dark-only by design.
+   Override any token in a page's own :root to re-skin.
+   ============================================================================= */
+
+:root {
+  /* 1. tokens ─────────────────────────────────────────────────────────────── */
+  --ink: #08090c;            /* deepest background        */
+  --ink-2: #0e1116;          /* raised background         */
+  --surface: #171a21;        /* matte panel surface       */
+  --well: #13161d;           /* code / preformatted fill  */
+  --rule: #1e242e;           /* hairline                  */
+  --rule-hi: #2b333f;        /* brighter hairline         */
+  --paper: #f3efe6;          /* primary text (warm white) */
+  --paper-dim: #a8aeb8;      /* secondary text            */
+  --paper-dimmer: #6c737f;   /* tertiary / labels         */
+  --accent: #6ea8fe;         /* primary accent (blue)     */
+  --accent-2: #b18cff;       /* secondary accent (violet) */
+  --green: #5dd39e;
+  --amber: #e9a93c;
+  --red: #e5484d;
+  --chip: rgba(255, 255, 255, 0.05);
+  --hover: rgba(255, 255, 255, 0.06);
+
+  --display: "New York", "Iowan Old Style", Baskerville, Palatino, Georgia, ui-serif, serif;
+  --sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  --elev:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 8px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
+
+  color-scheme: dark;
+}
+
+/* 2. page ───────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--paper);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(1100px 700px at 82% -12%, rgba(110, 168, 254, 0.10), transparent 60%),
+    radial-gradient(900px 600px at 8% 108%, rgba(93, 211, 158, 0.07), transparent 62%),
+    linear-gradient(174deg, var(--ink-2), var(--ink) 70%);
+  background-attachment: fixed;
+  background-color: var(--ink);
+}
+/* blueprint grid, faded at the edges */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 80px 80px;
+  -webkit-mask-image: radial-gradient(130% 100% at 50% 20%, #000 45%, transparent 100%);
+  mask-image: radial-gradient(130% 100% at 50% 20%, #000 45%, transparent 100%);
+}
+/* film grain */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* 3. typography ─────────────────────────────────────────────────────────── */
+/* eyebrow — a mono label with a short leading hairline */
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--paper-dim); display: flex; align-items: center; gap: 12px; margin: 0 0 18px;
+}
+.eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--rule-hi); }
+
+/* serif display heading */
+h1, .hero {
+  margin: 0; font-family: var(--display); font-weight: 500;
+  font-size: clamp(40px, 6vw, 68px); line-height: 1.0; letter-spacing: -0.02em; color: var(--paper);
+}
+h2 { font-family: var(--display); font-weight: 500; letter-spacing: -0.01em; color: var(--paper); }
+
+/* lede / subtitle — the sentence under a hero */
+.lede, .subtitle {
+  margin: 16px 0 0; max-width: 60ch;
+  color: var(--paper-dim); font-weight: 340; font-size: clamp(15px, 1.6vw, 18px);
+}
+
+/* mono label role — section headers, small caps labels */
+.label {
+  font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--paper-dimmer);
+}
+
+/* 4. primitives ─────────────────────────────────────────────────────────── */
+/* panel — a raised matte card */
+.panel {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+  box-shadow: var(--elev); padding: 14px 16px;
+}
+
+/* pill — a small mono status chip; add .live / .repo / .writeup / .closed */
+.pill {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 980px; border: 1px solid var(--rule-hi); color: var(--paper-dim);
+}
+.pill.live    { color: var(--green);    border-color: rgba(93, 211, 158, 0.40); background: rgba(93, 211, 158, 0.08); }
+.pill.repo    { color: var(--accent);   border-color: rgba(110, 168, 254, 0.40); background: rgba(110, 168, 254, 0.08); }
+.pill.writeup { color: var(--accent-2); border-color: rgba(177, 140, 255, 0.40); background: rgba(177, 140, 255, 0.08); }
+.pill.closed  { color: var(--paper-dimmer); }
+
+/* tag — a subtle rounded pill for tech / metadata */
+.tag {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--paper-dim); background: var(--chip); border: 1px solid transparent;
+  padding: 2px 8px; border-radius: 980px;
+}
+
+/* hairline divider */
+.rule { border: 0; border-top: 1px solid var(--rule); margin: 16px 0; }
