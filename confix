@@ -5,7 +5,7 @@
 #
 # --------------------------------------------------------------------
 # AUTHOR:   Copyright (C) Budhaditya Das <budhash@gmail.com>
-# VERSION:  1.4
+# VERSION:  1.5
 # --------------------------------------------------------------------
 # DESCRIPTION:
 #
@@ -35,7 +35,7 @@
 # --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=1.4
+readonly __APPVERSION=1.5
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
@@ -318,14 +318,29 @@ Options:
     -s <separator_character>            
         default value is "="
         
-    -c <comment_character>                            
+    -c <comment_character>
         default value is "#"
+
+
+Commands:
+--------
+    each positional argument (and each line of a -e file) is one command;
+    the first character selects the operation:
+
+    key=value       update an existing key (no action if the key is absent)
+    >key=value      set the key, appending it to the file if it is absent
+    >key            uncomment an existing key
+    <key            comment out an existing key (the line is kept)
+    !key            delete the key's line entirely (active or commented)
 
 
 Examples:
 --------
     - remove (comment out) an existing config element
     $__APPNAME -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
+
+    - delete a config element entirely (removes the line)
+    $__APPNAME -s':' -f cassandra.yaml "!gc_warn_threshold_in_ms"
 
     - uncomment an existing config element (no action if the config key does not exist)
     $__APPNAME -s':' -f cassandra.yaml ">concurrent_compactors"
@@ -390,6 +405,8 @@ function _change_config() {
         _add_config "${_cmd#">"}"
     elif [[ $_cmd == "<"* ]]; then
         _remove_config "${_cmd#"<"}"
+    elif [[ $_cmd == "!"* ]]; then
+        _delete_config "${_cmd#"!"}"
     else
         _update_config "$_cmd"
     fi
@@ -446,6 +463,17 @@ function _remove_config() {
     if [ "$(_rexists_config "$_key")" -eq "1" ]; then
         _add_comment "$_key"
     fi
+}
+
+function _delete_config() {
+    _parse_cmd "$1"
+    local _key="$__pkey"
+    [[ -z "$_key" ]] && return
+
+    local _key_re=$(_escape_re "$_key")
+    # remove the line entirely, whether the key is active or commented out.
+    # any value given (!key=value) is ignored - deletion is by key.
+    $__SED "/^[[:blank:]]*${__cc_re}*[[:blank:]]*${_key_re}[[:blank:]]*${__sep_re}/d" "$input_file"
 }
 
 function _add_comment() {

@@ -46,6 +46,7 @@ first character selects the operation:
 | `>key=value` | set the key, appending it to the end of the file if absent      |
 | `>key`       | uncomment an existing key; no-op if absent                      |
 | `<key`       | comment the key out (the line is kept, not deleted)             |
+| `!key`       | delete the key's line entirely (active or commented); no-op if absent |
 
 Flags: `-f` input file, `-o` output file (`-o-` prints to stdout and leaves
 the input alone), `-e` external command file, `-s` separator (default `=`),

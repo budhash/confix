@@ -36,10 +36,25 @@ Optionally verify the download against its published checksum:
     curl -kLO https://github.com/budhash/confix/releases/latest/download/confix.sha256
     shasum -a 256 -c confix.sha256
 
+## Commands
+Each positional argument (and each line of a `-e` file) is one command; the first character selects the operation:
+
+| Command      | Meaning                                                       |
+| ------------ | ------------------------------------------------------------- |
+| `key=value`  | update an existing key (no action if the key is absent)       |
+| `>key=value` | set the key, appending it to the file if it is absent         |
+| `>key`       | uncomment an existing key                                     |
+| `<key`       | comment out an existing key (the line is kept)                |
+| `!key`       | delete the key's line entirely (active or commented)          |
+
 ## Examples
 - remove (comment out) an existing config element
 
       ./confix -c '#' -s':' -f cassandra.yaml "<gc_warn_threshold_in_ms"
+
+- delete a config element entirely (removes the line)
+
+      ./confix -s':' -f cassandra.yaml "!gc_warn_threshold_in_ms"
 
 - uncomment an existing config element (no action if the config key does not exist)
 
