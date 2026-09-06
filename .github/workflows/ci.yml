@@ -27,7 +27,7 @@ jobs:
           sed --version 2>/dev/null | head -1 || echo "sed: BSD"
 
       - name: syntax check
-        run: bash -n confix
+        run: bash -n sh/confix
 
       - name: run test suite
         run: ./test/run-tests.sh -n

@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: syntax check
-        run: bash -n confix
+        run: bash -n sh/confix
 
       - name: run test suite
         run: ./test/run-tests.sh -n
@@ -28,7 +28,7 @@ jobs:
         run: |
           # exercise confix exactly the way the README tells users to
           printf 'environment=qa\n#debug=false\n' > smoke.properties
-          ./confix -f smoke.properties "environment=prod" ">debug=true" ">added=1"
+          ./sh/confix -f smoke.properties "environment=prod" ">debug=true" ">added=1"
           grep -qx 'environment=prod' smoke.properties || { echo "update failed"; exit 1; }
           grep -qx 'debug=true'       smoke.properties || { echo "uncomment failed"; exit 1; }
           grep -qx 'added=1'          smoke.properties || { echo "append failed"; exit 1; }
@@ -43,13 +43,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: assemble the release artifact
+        run: |
+          # the tool lives at sh/confix in the repo; publish it under the name
+          # users curl (releases/latest/download/confix), so the install URL is
+          # unchanged by the relocation
+          cp sh/confix confix
+          chmod +x confix
+
       - name: version in confix must match the tag
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          version=$(grep -E '^readonly __APPVERSION=' confix | cut -d= -f2 | tr -d ' "')
+          version=$(grep -E '^readonly __APPVERSION=' sh/confix | cut -d= -f2 | tr -d ' "')
           echo "tag=$tag  __APPVERSION=$version"
           if [ "$tag" != "$version" ]; then
-            echo "::error file=confix::tag $GITHUB_REF_NAME does not match __APPVERSION=$version - bump the version in confix or retag"
+            echo "::error file=sh/confix::tag $GITHUB_REF_NAME does not match __APPVERSION=$version - bump the version in sh/confix or retag"
             exit 1
           fi
 
