@@ -3,6 +3,29 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## PR3 — Node CLI + bash-vs-node parity
+
+- **Hand-rolled getopts, not `util.parseArgs`.** To match the bash `getopts`
+  contract exactly — attached short-option values (`-ofile`, `-s:`), `-o-`
+  meaning the value `"-"`, clustering (`-df`), and *stopping at the first
+  positional* (`shift $((OPTIND-1))`) — a small manual parser is clearer and
+  more faithful than `parseArgs`, which permutes and doesn't take attached
+  short values the same way.
+- **Self-contained unified diff for `-d` (Windows-safe).** The bash tool shells
+  out to `diff`; the Node CLI can't assume `diff` exists, so `-d` is an LCS-based
+  unified diff (3 lines context, GNU-style `@@` headers, `,count` omitted when
+  1). It byte-matches GNU `diff -u` for trailing-newline cases — verified by
+  parity tests — so those assert byte-equality; no-trailing-newline cases (GNU's
+  `\ No newline at end of file` marker) are intentionally left out of `-d`
+  byte-parity.
+- **Parity tests run both implementations on isolated copies.** In-place edits
+  mutate the input, so bash and node each get their own fresh temp dir seeded
+  with identical content; then stdout and resulting file bytes are compared. 13
+  write-mode scenarios + 3 dry-run scenarios, all byte-identical. Guarded with
+  `{ skip }` when bash/script are absent (Windows), so the suite still runs.
+- **Command order:** `-e` file commands first (in file order), then argv
+  commands — matching `main()` in the script.
+
 ## PR2 — promote the JS port to `@budhash/confix`
 
 - **Zero-build, dual-consumable from one UMD core.** `js/src/confix.js` keeps the
