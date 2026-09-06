@@ -1,0 +1,11 @@
+{
+  "name": "update-commented-key-uncomments",
+  "desc": "updating a commented key uncomments it and sets the value",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a=2"
+  ],
+  "input": "#a=1\n",
+  "expected": "a=2\n"
+}

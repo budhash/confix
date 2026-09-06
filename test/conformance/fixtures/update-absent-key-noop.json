@@ -1,0 +1,11 @@
+{
+  "name": "update-absent-key-noop",
+  "desc": "key=value is a no-op when the key is absent",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "missing=2"
+  ],
+  "input": "a=1\n",
+  "expected": "a=1\n"
+}

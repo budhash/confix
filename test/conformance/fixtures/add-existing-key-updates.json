@@ -1,0 +1,11 @@
+{
+  "name": "add-existing-key-updates",
+  "desc": ">key=value updates an existing active key in place without appending",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">a=9"
+  ],
+  "input": "a=1\nb=2\n",
+  "expected": "a=9\nb=2\n"
+}

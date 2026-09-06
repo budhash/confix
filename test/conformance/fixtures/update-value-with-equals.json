@@ -1,0 +1,11 @@
+{
+  "name": "update-value-with-equals",
+  "desc": "value split on the FIRST = only, so extra = signs stay in the value",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "jdbc.url=a;MODE=b"
+  ],
+  "input": "jdbc.url=old\n",
+  "expected": "jdbc.url=a;MODE=b\n"
+}

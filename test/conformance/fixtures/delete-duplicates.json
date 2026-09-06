@@ -1,0 +1,11 @@
+{
+  "name": "delete-duplicates",
+  "desc": "!key removes every occurrence of a duplicate key",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "!dup"
+  ],
+  "input": "dup=1\nkeep=9\ndup=2\n",
+  "expected": "keep=9\n"
+}

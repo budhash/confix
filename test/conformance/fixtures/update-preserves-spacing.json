@@ -1,0 +1,11 @@
+{
+  "name": "update-preserves-spacing",
+  "desc": "leading blanks and the spacing around the separator are preserved",
+  "sep": ":",
+  "comment": "#",
+  "commands": [
+    "key=new"
+  ],
+  "input": "  key : val\n",
+  "expected": "  key : new\n"
+}

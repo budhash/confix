@@ -1,0 +1,11 @@
+{
+  "name": "comment-active-key",
+  "desc": "<key comments out an active key, keeping the line",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "<a"
+  ],
+  "input": "a=1\n",
+  "expected": "#a=1\n"
+}

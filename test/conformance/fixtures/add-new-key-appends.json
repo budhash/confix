@@ -1,0 +1,11 @@
+{
+  "name": "add-new-key-appends",
+  "desc": ">key=value appends a new key to the end of the file",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">brand.new=hello"
+  ],
+  "input": "existing=1\n",
+  "expected": "existing=1\nbrand.new=hello\n"
+}

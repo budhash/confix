@@ -1,0 +1,11 @@
+{
+  "name": "delete-commented-key",
+  "desc": "!key removes a commented-out key's line",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "!b"
+  ],
+  "input": "a=1\n#b=2\n",
+  "expected": "a=1\n"
+}

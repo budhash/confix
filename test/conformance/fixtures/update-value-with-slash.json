@@ -1,0 +1,11 @@
+{
+  "name": "update-value-with-slash",
+  "desc": "a value containing slashes is set correctly",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "dir=/change/commitlog"
+  ],
+  "input": "dir=old\n",
+  "expected": "dir=/change/commitlog\n"
+}

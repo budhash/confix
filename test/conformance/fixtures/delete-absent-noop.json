@@ -1,0 +1,11 @@
+{
+  "name": "delete-absent-noop",
+  "desc": "!key is a no-op when the key is absent",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "!missing"
+  ],
+  "input": "a=1\n",
+  "expected": "a=1\n"
+}

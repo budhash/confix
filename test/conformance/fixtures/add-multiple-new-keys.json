@@ -1,0 +1,13 @@
+{
+  "name": "add-multiple-new-keys",
+  "desc": "appending several keys introduces no blank separator lines",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">one=1",
+    ">two=2",
+    ">three=3"
+  ],
+  "input": "existing=1\n",
+  "expected": "existing=1\none=1\ntwo=2\nthree=3\n"
+}

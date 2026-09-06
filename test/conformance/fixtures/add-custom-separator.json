@@ -1,0 +1,11 @@
+{
+  "name": "add-custom-separator",
+  "desc": ">key=value uses the configured separator for a newly appended key",
+  "sep": ":",
+  "comment": "#",
+  "commands": [
+    ">new_param=/some/val"
+  ],
+  "input": "a: 1\n",
+  "expected": "a: 1\nnew_param:/some/val\n"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "delete-custom-separator",
+  "desc": "!key uses the configured separator to find the line",
+  "sep": ":",
+  "comment": "#",
+  "commands": [
+    "!gone"
+  ],
+  "input": "kept: 1\ngone: 2\n",
+  "expected": "kept: 1\n"
+}

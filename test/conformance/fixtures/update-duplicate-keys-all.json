@@ -1,0 +1,11 @@
+{
+  "name": "update-duplicate-keys-all",
+  "desc": "every occurrence of a duplicate key is rewritten, not just the first",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "dup=0"
+  ],
+  "input": "dup=1\nkeep=9\ndup=2\n",
+  "expected": "dup=0\nkeep=9\ndup=0\n"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "update-value-with-spaces",
+  "desc": "a value containing spaces is preserved",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "msg=hello world"
+  ],
+  "input": "msg=old\n",
+  "expected": "msg=hello world\n"
+}
