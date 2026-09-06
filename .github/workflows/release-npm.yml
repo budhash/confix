@@ -1,12 +1,14 @@
 name: release-npm
 
-# Publishes the @budhash/confix npm package. This channel is independent of the
-# bash script's `v*` release (release.yml): the package versions on its own
-# `js-v*` tags, e.g. `git tag js-v2.0.0 && git push origin js-v2.0.0`.
+# Publishes the @budhash/confix npm package via npm Trusted Publishing (OIDC):
+# no stored token, no NPM_TOKEN secret. GitHub Actions mints a short-lived
+# identity token that npm verifies against the trusted publisher configured on
+# the package (npmjs.com -> @budhash/confix -> Settings -> Trusted Publisher:
+# repo budhash/confix, workflow release-npm.yml). Provenance is automatic.
 #
-# Publishing requires an NPM_TOKEN secret; without it the publish step fails,
-# so a tag alone never leaks a release. Nothing here runs until such a tag is
-# pushed.
+# This channel is independent of the bash script's `v*` release (release.yml):
+# the package versions on its own `js-v*` tags, e.g.
+#   git tag js-v2.0.0 && git push origin js-v2.0.0
 
 on:
   push:
@@ -15,7 +17,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # for npm provenance
+  id-token: write   # required for OIDC trusted publishing (and provenance)
 
 jobs:
   publish:
@@ -31,6 +33,10 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
+
+      - name: use an npm that supports trusted publishing
+        # trusted publishing needs npm >= 11.5.1; node 20 ships an older npm
+        run: npm install -g npm@latest
 
       - name: tag must match the package version
         run: |
@@ -49,7 +55,5 @@ jobs:
       - name: verify packaged contents
         run: npm pack --dry-run
 
-      - name: publish
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: publish (trusted publishing, no token)
+        run: npm publish --access public

@@ -1,6 +1,7 @@
 # confix
 [![ci](https://github.com/budhash/confix/actions/workflows/ci.yml/badge.svg)](https://github.com/budhash/confix/actions/workflows/ci.yml)
 [![release](https://img.shields.io/github/v/release/budhash/confix)](https://github.com/budhash/confix/releases/latest)
+[![npm](https://img.shields.io/npm/v/@budhash/confix)](https://www.npmjs.com/package/@budhash/confix)
 
 ## Summary
 a tiny config-file editor: update, add, comment, uncomment and delete keys in
@@ -124,14 +125,14 @@ Each positional argument (and each line of a `-e` file) is one command; the firs
 ## JavaScript library and CLI
 
 The same behavior is available as a zero-dependency JavaScript package,
-[`@budhash/confix`](js/) — usable as a library (Node and the browser) and as a
-cross-platform CLI. It is a pure text-to-text port of the bash script, validated
-against it (see [parity](#specification-and-parity) below).
+[`@budhash/confix`](https://www.npmjs.com/package/@budhash/confix) — usable as a
+library (Node and the browser) and as a cross-platform CLI. It is a pure
+text-to-text port of the bash script, validated against it (see
+[parity](#specification-and-parity) below).
 
-> **Note:** the package is prepared but not yet on npm — publishing is pending.
-> Until then you can vendor [`js/src/confix.js`](js/src/confix.js) directly (it
-> works as a CommonJS module, an ESM import via `js/src/confix.mjs`, or a browser
-> global). Once published, `npm install @budhash/confix` applies.
+```sh
+npm install @budhash/confix
+```
 
 **Library:**
 
