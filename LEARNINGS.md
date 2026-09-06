@@ -3,6 +3,23 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## Hardened the conformance suite (48 fixtures)
+
+- **Fuzzed the JS core against the oracle on 20 edge cases the original 32
+  fixtures didn't cover** — empty values via `>key=` / `key=`, multi-char and
+  regex-special separators (`::`, `.`) and comment chars (`//`, `*`), tabs around
+  the separator, values starting with an operator char, append-after-blank-line.
+  **Zero divergences**, byte-exact. The port needed no fix; promoted 16 of these
+  to committed fixtures so a future refactor of either implementation can't
+  regress them.
+- **Harness bug worth remembering:** a quick `node -e` comparison that passed the
+  module path as a trailing CLI arg (`node -e '...' JS=...`) left `process.env.JS`
+  undefined, so every JS run crashed and *looked* like a total divergence. Env
+  vars must prefix the command; a trailing arg becomes `process.argv`, not env.
+- **`$(...)` masks trailing-newline diffs** (command substitution strips them),
+  so the ad-hoc fuzz couldn't see NL-only differences — but the committed
+  fixtures assert byte-exact via `cmp` (bash) and `assert.equal` (JS), which do.
+
 ## Published to npm + Trusted Publishing
 
 - **`@budhash/confix@2.0.0` is live on npm** (first publish done manually with

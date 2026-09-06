@@ -1,0 +1,11 @@
+{
+  "name": "leading-tab-before-key",
+  "desc": "a key indented with a tab is updated in place",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a=2"
+  ],
+  "input": "\ta=1\n",
+  "expected": "\ta=2\n"
+}

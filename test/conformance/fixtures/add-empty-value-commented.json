@@ -1,0 +1,11 @@
+{
+  "name": "add-empty-value-commented",
+  "desc": ">key= on a commented key",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">a="
+  ],
+  "input": "#a=1\n",
+  "expected": "a=\n"
+}

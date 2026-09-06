@@ -1,0 +1,11 @@
+{
+  "name": "value-starts-with-operator",
+  "desc": "a value beginning with > is data, not an operator",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a=>x"
+  ],
+  "input": "a=1\n",
+  "expected": "a=>x\n"
+}

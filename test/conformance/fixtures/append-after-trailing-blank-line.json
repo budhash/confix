@@ -1,0 +1,11 @@
+{
+  "name": "append-after-trailing-blank-line",
+  "desc": "appending when the file ends in a blank line",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">b=2"
+  ],
+  "input": "a=1\n\n",
+  "expected": "a=1\n\nb=2\n"
+}

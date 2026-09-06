@@ -1,0 +1,11 @@
+{
+  "name": "add-empty-value-active",
+  "desc": ">key= on an active key",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">a="
+  ],
+  "input": "a=1\n",
+  "expected": "a=\n"
+}

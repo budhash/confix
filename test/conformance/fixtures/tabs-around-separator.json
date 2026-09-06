@@ -1,0 +1,11 @@
+{
+  "name": "tabs-around-separator",
+  "desc": "tabs around the separator are matched and preserved",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a=2"
+  ],
+  "input": "a\t=\t1\n",
+  "expected": "a\t=\t2\n"
+}

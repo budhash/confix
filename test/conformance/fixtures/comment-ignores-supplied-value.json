@@ -1,0 +1,11 @@
+{
+  "name": "comment-ignores-supplied-value",
+  "desc": "<key=value ignores the value when commenting",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "<a=zzz"
+  ],
+  "input": "a=1\n",
+  "expected": "#a=1\n"
+}

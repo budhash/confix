@@ -1,0 +1,11 @@
+{
+  "name": "update-empty-value-active",
+  "desc": "key= sets an active key's value to empty",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a="
+  ],
+  "input": "a=1\n",
+  "expected": "a=\n"
+}
