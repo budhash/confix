@@ -30,8 +30,16 @@ export function apply(text: string, commands: string[], opts?: ConfixOptions): s
  */
 export function parseCommandBlock(block: string, comment?: string): string[];
 
+/**
+ * Convenience: parse a command block (one command per line, like an `-e` file)
+ * and apply it to `text` in a single call. Equivalent to
+ * `apply(text, parseCommandBlock(block, opts.comment), opts)`.
+ */
+export function applyBlock(text: string, block: string, opts?: ConfixOptions): string;
+
 declare const _default: {
   apply: typeof apply;
+  applyBlock: typeof applyBlock;
   parseCommandBlock: typeof parseCommandBlock;
 };
 export default _default;

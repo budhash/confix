@@ -137,17 +137,22 @@ npm install @budhash/confix
 **Library:**
 
 ```js
-import { apply, parseCommandBlock } from "@budhash/confix"; // ESM
-// const { apply, parseCommandBlock } = require("@budhash/confix"); // CommonJS
+import { apply, applyBlock, parseCommandBlock } from "@budhash/confix"; // ESM
+// const { apply, applyBlock, parseCommandBlock } = require("@budhash/confix"); // CommonJS
 
 apply("environment=dev\n#debug=false\n", ["environment=prod", ">debug", ">workers=4"]);
 // => "environment=prod\ndebug=false\nworkers=4\n"
 
 apply("gc: 1000\n", ["gc=2001"], { sep: ":" }); // "gc: 2001\n"
+
+// one call for a whole command block (like an -e file), skipping comment lines:
+applyBlock("port=8080\n", "port=9090\n>debug=true"); // => "port=9090\ndebug=true\n"
 ```
 
 - `apply(text, commands, { sep = "=", comment = "#" }) → string` — apply the
   commands (same grammar as above) to `text` and return the new text.
+- `applyBlock(text, block, { sep, comment }) → string` — parse a command block
+  (one command per line, like an `-e` file) and apply it in one call.
 - `parseCommandBlock(block, comment = "#") → string[]` — split an `-e`-style
   block into commands, skipping blanks and comment lines.
 
@@ -188,4 +193,7 @@ You can download this project in either [zip](http://github.com/budhash/confix/z
 Or simply clone the project with [Git](http://git-scm.com/) by running:
 
     git clone git://github.com/budhash/confix
+
+In a clone, the bash script lives at `sh/confix` and the JavaScript package at
+`js/`. See [CHANGELOG.md](CHANGELOG.md) for release history.
  

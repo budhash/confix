@@ -35,7 +35,7 @@
 # --------------------------------------------------------------------
 ## begin ## meta-data
 readonly __APPNAME=$( basename "${BASH_SOURCE[0]}" )
-readonly __APPVERSION=2.0.0
+readonly __APPVERSION=2.1.0
 readonly __SUPPORTED_OS=(MAC LINUX-DEBIAN)
 readonly __SUPPORTED_ARCH=(X32 X64 A32 A64)
 readonly __DEBUG=FALSE
