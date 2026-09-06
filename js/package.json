@@ -27,6 +27,9 @@
   "main": "src/confix.js",
   "module": "src/confix.mjs",
   "types": "confix.d.ts",
+  "bin": {
+    "confix": "bin/confix.js"
+  },
   "exports": {
     ".": {
       "types": "./confix.d.ts",
@@ -36,6 +39,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "bin/",
     "src/",
     "confix.d.ts",
     "README.md"

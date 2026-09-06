@@ -69,6 +69,35 @@ on kept commands are stripped.
 parseCommandBlock("a=1\n# note\n  >b\n"); // ["a=1", ">b"]
 ```
 
+## Command line
+
+Installing the package provides a cross-platform `confix` command that mirrors
+the [bash script](https://github.com/budhash/confix) flag-for-flag:
+
+```sh
+npx @budhash/confix -f app.properties "environment=prod" ">debug"
+
+# stdin -> stdout
+cat app.properties | npx @budhash/confix "environment=prod"
+
+# preview changes without writing (unified diff)
+npx @budhash/confix -d -f app.properties "environment=prod"
+```
+
+| Flag | Meaning                                                             |
+| ---- | ------------------------------------------------------------------ |
+| `-f` | input file. `-f -`, or omitting `-f`, reads stdin.                  |
+| `-o` | output file. `-o-` prints to stdout and leaves the input untouched.|
+| `-d` | dry run: print a unified diff and write nothing.                   |
+| `-e` | external command file (one command per line).                     |
+| `-s` | separator character (default `=`).                                |
+| `-c` | comment character (default `#`).                                  |
+| `-h` | show usage.                                                        |
+
+Without `-o`, an edit is applied in place. The Node CLI is a self-contained
+mirror of the bash tool (including its `-d` diff) and is validated against it by
+byte-for-byte parity tests.
+
 ## In the browser
 
 The core also attaches to the global as `confix` when loaded without a module
