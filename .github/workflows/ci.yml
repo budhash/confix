@@ -47,7 +47,16 @@ jobs:
         with:
           node-version: 20
 
-      - name: run js tests (conformance + api)
+      - name: docs demo must vendor the current library
+        # docs/confix.js is generated from js/src/confix.js (npm run build:docs)
+        # and must stay byte-identical, so the demo runs the shipped code
+        run: |
+          if ! diff -q js/src/confix.js docs/confix.js >/dev/null; then
+            echo "::error file=docs/confix.js::docs/confix.js is out of sync with js/src/confix.js - run 'npm run build:docs' in js/"
+            exit 1
+          fi
+
+      - name: run js tests (conformance + api + cli + parity)
         # the JS port runs the same shared fixtures as the bash oracle, so the
         # two implementations are validated against one identical contract
         working-directory: js

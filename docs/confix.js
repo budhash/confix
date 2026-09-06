@@ -1,8 +1,14 @@
-// confix.js — a faithful JavaScript port of the confix bash config editor's
-// core, for the browser demo. Mirrors the sed/grep semantics of the script
-// (validated against the real bash output). Not the tool itself — the tool is
-// the bash script at github.com/budhash/confix; this reproduces its edits so
-// the demo can run entirely client-side.
+// confix — a faithful JavaScript port of the confix config-file editor's core.
+//
+// This is the canonical JS implementation. It is a pure text-to-text transform
+// (no filesystem, no I/O) that mirrors the sed/grep semantics of the bash
+// `confix` script, which remains the reference ORACLE: both implementations are
+// validated against one shared conformance suite (test/conformance/), and where
+// they disagree the bash script wins. See SPEC.md for the full contract.
+//
+// Runs anywhere — Node (CommonJS `require`, or ESM via ./confix.mjs) and the
+// browser (as the `confix` global). The Node CLI and the web demo both consume
+// this same core, so there is one source of truth.
 //
 // Command grammar (first char selects the op; key/value split on the FIRST '='
 // in the command, independent of the file separator):
