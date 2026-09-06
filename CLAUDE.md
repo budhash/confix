@@ -175,23 +175,36 @@ accidental.
 
 ## CI and releases
 
-Three workflows, all running the suite on Linux **and** macOS because `confix`
-selects a different `sed` invocation per platform:
+The bash workflows run the suite on Linux **and** macOS because `confix`
+selects a different `sed` invocation per platform. `ci.yml` and `pr.yml` also
+run the shared conformance suite and the JavaScript package's tests.
 
-* **`ci.yml`** - on pushes to `main` and `claude/**`. Syntax check + suite.
-* **`pr.yml`** - on pull requests into `main`. Suite, advisory `shellcheck`,
-  and a `guards` job that fails the PR if `confix` stops invoking `main "$@"`
-  (the 2021 silent-no-op regression), stops being executable, or starts
-  `source`-ing an external file. It warns when `test/data/` fixtures change.
+* **`ci.yml`** - on pushes to `main` and `claude/**`. Syntax check, bash suite,
+  bash conformance, and a `js library` job (`node --test`).
+* **`pr.yml`** - on pull requests into `main`. The above, plus advisory
+  `shellcheck`, and a `guards` job that fails the PR if `confix` stops invoking
+  `main "$@"` (the 2021 silent-no-op regression), stops being executable, or
+  starts `source`-ing an external file. It warns when `test/data/` fixtures change.
 * **`release.yml`** - on pushing a `v*` tag. Runs the suite on both platforms,
   smoke-tests the script the way the README tells users to, then **fails if the
   tag does not match `__APPVERSION` in `confix`**, and publishes a GitHub
   Release with `confix` and a SHA256 checksum attached.
+* **`release-npm.yml`** - on pushing a `js-v*` tag. Verifies the tag matches
+  `js/package.json`, runs the JS tests, and publishes `@budhash/confix` to npm.
+  This is a **separate channel** from the bash `v*` release, so the script and
+  the package version independently. It needs an `NPM_TOKEN` secret; without it
+  the publish step fails, so a tag alone never ships.
 
 Cutting a release:
 
 ```bash
+# the bash script (GitHub Release):
 # 1. bump __APPVERSION in confix (it is the source of truth)
 # 2. commit, merge to main, then tag with the matching version:
 git tag vX.Y && git push origin vX.Y
+
+# the npm package (@budhash/confix), independently:
+# 1. bump "version" in js/package.json
+# 2. commit, merge to main, then tag with the js- prefix:
+git tag js-vX.Y.Z && git push origin js-vX.Y.Z
 ```

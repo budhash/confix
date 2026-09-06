@@ -3,6 +3,24 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## PR4 — npm packaging + tag-gated release
+
+- **Two independent release channels.** The bash script releases on `v*` tags
+  (GitHub Release); the npm package releases on `js-v*` tags (`release-npm.yml`).
+  Keeping the tag namespaces separate lets the script and the package version on
+  their own cadence and avoids one tag triggering both.
+- **A tag alone can't leak a publish.** `release-npm.yml` publishes only with an
+  `NPM_TOKEN` secret; without it the publish step fails. The workflow also
+  re-checks `tag == js/package.json version` before publishing, mirroring the
+  bash release's `__APPVERSION` guard.
+- **Scoped packages need `publishConfig.access: "public"`** or npm refuses to
+  publish `@budhash/*` publicly. `--provenance` + `id-token: write` gives npm
+  provenance (public repo on GitHub Actions).
+- **`prepublishOnly: node --test`** is a last-line safety so a local `npm publish`
+  can't ship a broken build.
+- No publish, no tag, no name reservation performed — that waits for explicit
+  approval.
+
 ## PR3 — Node CLI + bash-vs-node parity
 
 - **Hand-rolled getopts, not `util.parseArgs`.** To match the bash `getopts`
