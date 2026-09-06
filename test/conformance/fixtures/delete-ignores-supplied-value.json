@@ -1,0 +1,11 @@
+{
+  "name": "delete-ignores-supplied-value",
+  "desc": "!key=value ignores the value; deletion is by key",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "!a=zzz"
+  ],
+  "input": "a=1\n",
+  "expected": ""
+}

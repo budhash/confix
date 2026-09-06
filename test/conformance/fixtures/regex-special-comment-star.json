@@ -1,0 +1,11 @@
+{
+  "name": "regex-special-comment-star",
+  "desc": "a regex-special comment char (*) is handled literally",
+  "sep": "=",
+  "comment": "*",
+  "commands": [
+    ">a"
+  ],
+  "input": "*a=1\n",
+  "expected": "a=1\n"
+}

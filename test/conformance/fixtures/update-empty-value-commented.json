@@ -1,0 +1,11 @@
+{
+  "name": "update-empty-value-commented",
+  "desc": "key= on a commented key uncomments and empties it",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a="
+  ],
+  "input": "#a=1\n",
+  "expected": "a=\n"
+}
