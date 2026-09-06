@@ -35,8 +35,10 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: use an npm that supports trusted publishing
-        # trusted publishing needs npm >= 11.5.1; node 20 ships an older npm
-        run: npm install -g npm@latest
+        # trusted publishing needs npm >= 11.5.1; node 20 ships npm 10, and
+        # npm@latest (12.x) requires node >= 22, so pin the 11.x line, which
+        # supports OIDC and runs on node 20
+        run: npm install -g npm@11
 
       - name: tag must match the package version
         run: |
