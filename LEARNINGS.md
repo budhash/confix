@@ -3,6 +3,16 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## PR6 — README
+
+- **Documented the JS library + CLI beside the bash script**, and added a
+  "Specification and parity" section explaining the SPEC + oracle-generated
+  conformance suite that keeps the two in lockstep. Reframed the summary from
+  "a bash script" to "two implementations that behave identically".
+- **Honest about publish state:** the package isn't on npm yet (publish pending
+  approval), so the README says so and points readers at `js/src/confix.js` to
+  vendor directly in the meantime, rather than implying `npm install` works.
+
 ## PR5 — docs demo as a live tool over the library
 
 - **The demo already consumed the library's API** (`confix.apply` /
