@@ -27,7 +27,7 @@ jobs:
           sed --version 2>/dev/null | head -1 || echo "sed: BSD"
 
       - name: syntax check
-        run: bash -n confix
+        run: bash -n sh/confix
 
       - name: run test suite
         run: ./test/run-tests.sh -n
@@ -76,8 +76,8 @@ jobs:
           # the 2021 refactor shipped a commented-out "#main $@", turning
           # confix into a silent no-op. bash -n cannot catch that, so
           # check the call is present and uncommented.
-          if ! grep -qE '^[[:space:]]*main[[:space:]]+"\$@"' confix; then
-            echo "::error file=confix::confix does not invoke main - it would be a silent no-op"
+          if ! grep -qE '^[[:space:]]*main[[:space:]]+"\$@"' sh/confix; then
+            echo "::error file=sh/confix::confix does not invoke main - it would be a silent no-op"
             exit 1
           fi
 
@@ -85,13 +85,13 @@ jobs:
         run: |
           # the install story is "curl > confix; chmod +x confix", so the
           # tool must never source or dot-include a sibling file
-          if grep -nE '^[[:space:]]*(source|\.)[[:space:]]+' confix; then
-            echo "::error file=confix::confix sources an external file - it must stay self-contained"
+          if grep -nE '^[[:space:]]*(source|\.)[[:space:]]+' sh/confix; then
+            echo "::error file=sh/confix::confix sources an external file - it must stay self-contained"
             exit 1
           fi
 
       - name: confix must be executable
-        run: test -x confix || { echo "::error file=confix::confix is not executable"; exit 1; }
+        run: test -x sh/confix || { echo "::error file=sh/confix::confix is not executable"; exit 1; }
 
       - name: fixtures must be untouched
         run: |

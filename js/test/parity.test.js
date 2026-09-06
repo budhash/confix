@@ -14,7 +14,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const SCRIPT = path.join(__dirname, "..", "..", "confix"); // the bash oracle
+const SCRIPT = path.join(__dirname, "..", "..", "sh", "confix"); // the bash oracle
 const CLI = path.join(__dirname, "..", "bin", "confix.js"); // the node CLI
 
 const bashOk = spawnSync("bash", ["-c", "exit 0"]).status === 0;

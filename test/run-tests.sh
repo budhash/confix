@@ -24,7 +24,7 @@ readonly __TESTDIR=$__BASEDIR
 readonly __DATADIR=$__BASEDIR/data
 readonly __CASEDIR=$__BASEDIR/cases
 readonly __CODEDIR=$__BASEDIR/..
-readonly __SCRIPT=$__CODEDIR/confix
+readonly __SCRIPT=$__CODEDIR/sh/confix
 
 FILTER=""
 SUITE=""

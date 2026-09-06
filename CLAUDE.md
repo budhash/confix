@@ -7,18 +7,24 @@ Guidance for Claude Code when working in this repository.
 `confix` is a single, dependency-free Bash script that edits configuration
 files in place — properties, YAML, INI, `log4j.properties`, `php.ini`, and
 anything else shaped like `key<separator>value`. It is designed to be
-`curl`-ed onto a box and run, so **the whole tool is one file: `confix`**.
+`curl`-ed onto a box and run, so **the whole tool is one file: `sh/confix`**.
+(It is published as the release asset `confix`, so the install URL is unchanged
+by living under `sh/`.)
 
 There is no build step, no package manifest and no runtime dependency beyond
 `bash`, `sed`, `grep` and `cat` (plus `diff` for the `-d` dry-run flag).
 
 ```
-confix                      the entire tool
-test/run-tests.sh           test runner
+sh/confix                   the entire bash tool
+js/                         the @budhash/confix package (library + CLI)
+docs/                       the web demo (served at budhash.com/confix)
+SPEC.md                     the canonical behavior spec
+test/run-tests.sh           bash test runner
 test/lib/testlib.sh         test harness (assertions, sandboxing)
-test/cases/*.sh             test cases, one file per area
+test/cases/*.sh             bash test cases, one file per area
 test/data/                  fixture config files
-.github/workflows/           CI: ci (push), pr (checks + guards), release (tags)
+test/conformance/           shared fixtures both implementations run
+.github/workflows/           CI: ci (push), pr (checks + guards), release, release-npm
 ```
 
 ## Running the tests

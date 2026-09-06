@@ -35,7 +35,7 @@ set -u
 
 readonly __CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 readonly __CONF_ROOT="$( cd "$__CONF_DIR/../.." && pwd )"
-readonly __CONF_SCRIPT="$__CONF_ROOT/confix"
+readonly __CONF_SCRIPT="$__CONF_ROOT/sh/confix"
 readonly __CONF_FIXTURES="$__CONF_DIR/fixtures"
 
 command -v jq >/dev/null 2>&1 || {
