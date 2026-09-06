@@ -3,6 +3,19 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## PR5 — docs demo as a live tool over the library
+
+- **The demo already consumed the library's API** (`confix.apply` /
+  `confix.parseCommandBlock`); the only duplication was `docs/confix.js` being a
+  hand-copy. Fix: make it a **generated, byte-identical vendor** of
+  `js/src/confix.js` via `npm run build:docs`, with a CI guard (`diff`) that
+  fails if they drift. One source of truth, zero build step for Pages.
+- **Byte-identical, no banner.** Adding a "generated" banner to `docs/confix.js`
+  would break the trivial `diff` guard, so the "don't edit" note lives in
+  `docs/README.md` and the build script instead of in the file.
+- No page redesign: the dark theme and "the tool" / "playground" structure are
+  untouched — this PR only changes where the demo's code comes from.
+
 ## PR4 — npm packaging + tag-gated release
 
 - **Two independent release channels.** The bash script releases on `v*` tags

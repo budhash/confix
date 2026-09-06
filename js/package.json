@@ -52,6 +52,7 @@
   },
   "scripts": {
     "test": "node --test",
+    "build:docs": "node scripts/build-docs.js",
     "prepublishOnly": "node --test"
   }
 }
