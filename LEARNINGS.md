@@ -3,6 +3,25 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## Published to npm + Trusted Publishing
+
+- **`@budhash/confix@2.0.0` is live on npm** (first publish done manually with
+  `npm publish --access public`). `@budhash` is a *user scope* — no npm org
+  needed, because the npm username is `budhash`.
+- **2FA is enforced for publishing.** A plain CLI publish 403'd
+  ("Two-factor authentication ... required"); the publish went through via npm's
+  browser auth flow (`npm publish` prints an `auth/cli` URL). `--otp=` is the
+  other route.
+- **Switched CI to Trusted Publishing (OIDC), per npm's own recommendation** over
+  long-lived tokens: `release-npm.yml` publishes with no `NPM_TOKEN` — GitHub
+  Actions mints a short-lived OIDC token npm verifies against the package's
+  configured trusted publisher (repo + workflow). Provenance is automatic; the
+  `id-token: write` permission was already in place. Needs npm >= 11.5.1, so the
+  workflow upgrades npm first (node 20 ships npm 10).
+- **First-publish chicken-and-egg:** npm attaches a trusted publisher to an
+  *existing* package, so the very first release was a manual bootstrap; every
+  future `js-v*` tag publishes token-lessly.
+
 ## PR6 — README
 
 - **Documented the JS library + CLI beside the bash script**, and added a
