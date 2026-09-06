@@ -1,0 +1,49 @@
+{
+  "name": "@budhash/confix",
+  "version": "2.0.0",
+  "description": "Faithful JavaScript port of the confix config-file editor core — update, add, comment, uncomment and delete keys in properties/YAML/INI-style files. Pure text-to-text, zero dependencies.",
+  "keywords": [
+    "config",
+    "configuration",
+    "properties",
+    "ini",
+    "yaml",
+    "editor",
+    "sed",
+    "confix"
+  ],
+  "license": "Apache-2.0",
+  "author": "Budhaditya Das <budhash@gmail.com>",
+  "homepage": "https://github.com/budhash/confix#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/budhash/confix.git",
+    "directory": "js"
+  },
+  "bugs": {
+    "url": "https://github.com/budhash/confix/issues"
+  },
+  "type": "commonjs",
+  "main": "src/confix.js",
+  "module": "src/confix.mjs",
+  "types": "confix.d.ts",
+  "exports": {
+    ".": {
+      "types": "./confix.d.ts",
+      "import": "./src/confix.mjs",
+      "require": "./src/confix.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/",
+    "confix.d.ts",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

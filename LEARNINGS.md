@@ -3,6 +3,29 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## PR2 — promote the JS port to `@budhash/confix`
+
+- **Zero-build, dual-consumable from one UMD core.** `js/src/confix.js` keeps the
+  port's `module.exports = api` / `root.confix` shape, so it is the CommonJS
+  `require` target *and* the browser global with no bundler. A ~4-line
+  `confix.mjs` shim re-exports the named API for native ESM `import`. The
+  `package.json` `exports` map wires `import`→`.mjs`, `require`→`.js`,
+  `types`→hand-written `confix.d.ts`.
+- **Node can't statically see named exports from this CJS core** (it assigns an
+  object built from variables), which is exactly why the `.mjs` shim imports the
+  default and re-exports names — don't point ESM consumers straight at the CJS.
+- **`node --test` is the whole test runner** — no devDependencies, no lockfile.
+  The JS conformance test reads the same `test/conformance/fixtures/*.json` the
+  bash oracle uses (39 JS tests: 32 conformance + 7 API). One contract, two
+  implementations.
+- **npm packaging gotchas:** `npm pack --dry-run` to verify shipped files;
+  `files` didn't include a LICENSE, so a copy was placed at `js/LICENSE` (npm
+  only bundles a LICENSE from the package dir). `repository.directory: "js"`
+  points npm at the subdir.
+- **Temporary duplication:** `docs/confix.js` still exists alongside
+  `js/src/confix.js` during this window; PR5 rewires the demo onto the built
+  library and removes the copy. They are byte-identical bodies today.
+
 ## PR1 — SPEC + conformance harness
 
 - **The bash script is the oracle, and `expected` is generated from it.** The
