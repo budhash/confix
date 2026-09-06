@@ -1,3 +1,14 @@
 # test sandboxes
 .orig/
 *.tmp
+
+# macOS
+.DS_Store
+
+# editor / in-place-edit backups
+*.bak
+
+# node / npm
+node_modules/
+npm-debug.log*
+*.tgz
