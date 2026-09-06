@@ -37,6 +37,22 @@ jobs:
         # runs on both GNU sed (linux) and BSD sed (macos) to catch drift
         run: ./test/conformance/run-bash.sh
 
+  js:
+    name: js library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: run js tests (conformance + api)
+        # the JS port runs the same shared fixtures as the bash oracle, so the
+        # two implementations are validated against one identical contract
+        working-directory: js
+        run: node --test
+
   guards:
     name: repo guards
     runs-on: ubuntu-latest
