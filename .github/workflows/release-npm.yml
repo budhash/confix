@@ -1,0 +1,55 @@
+name: release-npm
+
+# Publishes the @budhash/confix npm package. This channel is independent of the
+# bash script's `v*` release (release.yml): the package versions on its own
+# `js-v*` tags, e.g. `git tag js-v2.0.0 && git push origin js-v2.0.0`.
+#
+# Publishing requires an NPM_TOKEN secret; without it the publish step fails,
+# so a tag alone never leaks a release. Nothing here runs until such a tag is
+# pushed.
+
+on:
+  push:
+    tags: [ 'js-v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # for npm provenance
+
+jobs:
+  publish:
+    name: publish to npm
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: js
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: tag must match the package version
+        run: |
+          # tag js-vX.Y.Z must match the version in js/package.json
+          tag="${GITHUB_REF_NAME#js-v}"
+          pkg=$(node -p "require('./package.json').version")
+          echo "tag=$tag  package.json=$pkg"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error file=js/package.json::tag $GITHUB_REF_NAME does not match version $pkg - bump js/package.json or retag"
+            exit 1
+          fi
+
+      - name: run tests (conformance + api + cli + parity)
+        run: node --test
+
+      - name: verify packaged contents
+        run: npm pack --dry-run
+
+      - name: publish
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
