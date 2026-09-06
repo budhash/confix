@@ -46,12 +46,12 @@
 
   /* ── details ─────────────────────────────────────────────────────────── */
   .doc-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: start; }
-  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--elev); padding: 20px 22px; }
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--elev); padding: 20px 22px; min-width: 0; }
   .card > .label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-dimmer); display: block; }
   .card > .label + .label { margin-top: 18px; }
   .card p { margin: 0 0 10px; color: var(--paper-dim); font-size: 14px; line-height: 1.6; }
   .card p code, .inline-code { font-family: var(--mono); font-size: 12.5px; background: var(--chip); padding: 1px 5px; border-radius: 4px; color: var(--paper); }
-  pre.code { margin: 8px 0 0; background: var(--well); border: 1px solid var(--rule); border-radius: 8px; padding: 11px 13px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--paper); }
+  pre.code { margin: 8px 0 0; max-width: 100%; background: var(--well); border: 1px solid var(--rule); border-radius: 8px; padding: 11px 13px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--paper); }
   pre.code .c { color: var(--paper-dimmer); }
   .grammar { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
   .grammar td { padding: 5px 8px; border-top: 1px solid var(--rule); vertical-align: top; color: var(--paper-dim); }
@@ -75,8 +75,8 @@
   .seg button.on { background: var(--accent); color: #08090c; }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .col { display: flex; flex-direction: column; gap: 8px; }
-  .lbl { display: flex; align-items: baseline; justify-content: space-between; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .lbl { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; column-gap: 10px; }
   .lbl .label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-dimmer); }
   .lbl .hint { font-family: var(--mono); font-size: 10.5px; color: var(--paper-dimmer); }
   .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--elev); }
@@ -95,6 +95,13 @@
 
   @media (max-width: 820px) {
     .doc-grid, .grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .card { padding: 16px 16px; }
+    header { padding-right: 84px; }
+    pre.code { font-size: 12px; }
+    /* keep the verbose command hint from crowding its label */
+    .lbl .hint { flex-basis: 100%; }
   }
 </style>
 </head>
