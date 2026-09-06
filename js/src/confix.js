@@ -131,7 +131,16 @@
     return out;
   }
 
-  const api = { apply, parseCommandBlock, _reEsc: reEsc };
+  // convenience: parse a command block (one command per line, like an -e file
+  // or the CLI's -e input) and apply it in a single call. Equivalent to
+  // apply(text, parseCommandBlock(block, comment), opts).
+  function applyBlock(text, block, opts) {
+    opts = opts || {};
+    const comment = opts.comment != null && opts.comment !== "" ? opts.comment : "#";
+    return apply(text, parseCommandBlock(block, comment), opts);
+  }
+
+  const api = { apply, applyBlock, parseCommandBlock, _reEsc: reEsc };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.confix = api;
 })(typeof self !== "undefined" ? self : this);

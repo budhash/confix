@@ -1,6 +1,6 @@
 {
   "name": "@budhash/confix",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Faithful JavaScript port of the confix config-file editor core — update, add, comment, uncomment and delete keys in properties/YAML/INI-style files. Pure text-to-text, zero dependencies.",
   "keywords": [
     "config",

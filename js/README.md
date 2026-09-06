@@ -21,10 +21,10 @@ npm install @budhash/confix
 
 ```js
 // ESM
-import { apply, parseCommandBlock } from "@budhash/confix";
+import { apply, applyBlock, parseCommandBlock } from "@budhash/confix";
 
 // CommonJS
-const { apply, parseCommandBlock } = require("@budhash/confix");
+const { apply, applyBlock, parseCommandBlock } = require("@budhash/confix");
 
 const input = "environment=dev\n#debug=false\n";
 
@@ -56,6 +56,17 @@ file separator.
 ```js
 apply("gc: 1000\n", ["gc=2001"], { sep: ":" });   // "gc: 2001\n"
 apply(";debug=on\n", [">debug"], { comment: ";" }); // "debug=on\n"
+```
+
+### `applyBlock(text, block, opts?) → string`
+
+Convenience: parse a command block (one command per line, like an `-e` file) and
+apply it to `text` in one call. Equivalent to
+`apply(text, parseCommandBlock(block, comment), opts)`.
+
+```js
+applyBlock("port=8080\n#debug=false\n", "port=9090\n>debug\n# a comment");
+// => "port=9090\ndebug=false\n"
 ```
 
 ### `parseCommandBlock(block, comment?) → string[]`

@@ -3,6 +3,25 @@
 Insights, gotchas and decisions from promoting the confix JavaScript port to a
 first-class, spec-conformant implementation. Newest first.
 
+## 2.1.0 — applyBlock, sh/ relocation, demo file I/O
+
+- **A minor release needs a real change.** The port already matched the oracle,
+  so a JS 2.1.0 with an identical tarball would be a hollow republish. Added one
+  genuine additive API — `applyBlock(text, block, opts)` (= parseCommandBlock +
+  apply) — which both justifies the minor and powers the demo's load→apply→save
+  flow. The bash 2.1.0 is honestly labelled a restructure/maintenance release
+  (no behavior change); both share the 2.1.0 line for parity.
+- **Relocating `confix` → `sh/confix` kept the install URL stable** by having
+  `release.yml` copy `sh/confix` to the release-asset name `confix`. Only the
+  three path constants + the workflow guards needed touching — the test cases use
+  a `confix()` helper, so they didn't hardcode the path.
+- **Demo file I/O works on GitHub Pages** (it's a real page, not a Claude
+  Artifact): `<input type="file">` + FileReader to load, `Blob` + `<a download>`
+  to save. Both would be inert inside an Artifact sandbox, but this is Pages.
+- **Docs stayed the single source:** `docs/confix.js` is regenerated from
+  `js/src/confix.js` via `npm run build:docs` and CI-guarded, so adding
+  `applyBlock` to the core automatically reached the demo.
+
 ## Hardened the conformance suite (48 fixtures)
 
 - **Fuzzed the JS core against the oracle on 20 edge cases the original 32

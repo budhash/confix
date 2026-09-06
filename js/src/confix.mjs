@@ -4,5 +4,6 @@
 import cx from "./confix.js";
 
 export const apply = cx.apply;
+export const applyBlock = cx.applyBlock;
 export const parseCommandBlock = cx.parseCommandBlock;
 export default cx;

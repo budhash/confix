@@ -37,10 +37,30 @@ test("parseCommandBlock: honours a custom comment char", () => {
   ]);
 });
 
+test("applyBlock: parses a command block and applies it in one call", () => {
+  const block = ["port=9090", "# a comment", ">debug=true", "", "!obsolete"].join("\n");
+  const input = "port=8080\n#debug=false\nobsolete=1\n";
+  assert.equal(
+    cjs.applyBlock(input, block),
+    cjs.apply(input, cjs.parseCommandBlock(block), {}),
+    "applyBlock should equal apply(parseCommandBlock(...))"
+  );
+  assert.equal(cjs.applyBlock(input, block), "port=9090\ndebug=true\n");
+});
+
+test("applyBlock: honours custom sep and comment (comment lines in the block are skipped)", () => {
+  // the ";..." line in the command block is a comment and is skipped; the file
+  // uses ":" as its separator
+  const out = cjs.applyBlock("a: 1\n", "; set a\na=2", { sep: ":", comment: ";" });
+  assert.equal(out, "a: 2\n");
+});
+
 test("ESM entry re-exports the named API", async () => {
   const esm = await import("../src/confix.mjs");
   assert.equal(typeof esm.apply, "function");
+  assert.equal(typeof esm.applyBlock, "function");
   assert.equal(typeof esm.parseCommandBlock, "function");
   assert.equal(esm.apply("a=1\n", ["a=2"]), "a=2\n");
+  assert.equal(esm.applyBlock("a=1\n", "a=2"), "a=2\n");
   assert.equal(esm.default.apply, cjs.apply);
 });

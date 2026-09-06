@@ -1,6 +1,9 @@
 # confix — behavior specification
 
-**Spec version: 2.0.0** — tracks `__APPVERSION` in the `confix` script.
+**Spec version: 2.1.0** — tracks `__APPVERSION` in the `sh/confix` script.
+(Behavior is unchanged from 2.0.0; the 2.1.0 line is a repository restructure
+plus the additive `applyBlock` library convenience, neither of which changes the
+edit semantics defined here.)
 
 This document is the canonical description of what `confix` does. The bash
 script `confix` is the **reference implementation (the oracle)**: where this
