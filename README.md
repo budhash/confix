@@ -3,11 +3,16 @@
 [![release](https://img.shields.io/github/v/release/budhash/confix)](https://github.com/budhash/confix/releases/latest)
 
 ## Summary
-simple bash script to modify/update configuration files
+a tiny config-file editor: update, add, comment, uncomment and delete keys in
+`properties` / YAML / INI-style files. It ships as **two implementations that
+behave identically** — a dependency-free **bash script** (`confix`) and a
+**JavaScript port** (`@budhash/confix`: a zero-dependency library + CLI) — kept
+in lockstep by a shared [specification](SPEC.md) and
+[conformance suite](test/conformance/).
 
 **Try it in your browser → [budhash.com/confix](https://budhash.com/confix)** — an
-interactive playground that runs confix's command logic client-side (a JavaScript
-port of this script, validated against it).
+interactive playground that runs confix's command logic client-side, over the very
+same JavaScript library.
 
 ## Status
 Stable
@@ -116,8 +121,59 @@ Each positional argument (and each line of a `-e` file) is one command; the firs
       curl -skL https://github.com/budhash/confix/releases/latest/download/confix | bash /dev/stdin -o- -f test/data/log4j.properties "log4j.rootLogger=DEBUG,stdout"
       curl -skL https://github.com/budhash/confix/releases/latest/download/confix | bash /dev/stdin -o- -e test/data/log4j.cf -f test/data/log4j.properties
 
+## JavaScript library and CLI
+
+The same behavior is available as a zero-dependency JavaScript package,
+[`@budhash/confix`](js/) — usable as a library (Node and the browser) and as a
+cross-platform CLI. It is a pure text-to-text port of the bash script, validated
+against it (see [parity](#specification-and-parity) below).
+
+> **Note:** the package is prepared but not yet on npm — publishing is pending.
+> Until then you can vendor [`js/src/confix.js`](js/src/confix.js) directly (it
+> works as a CommonJS module, an ESM import via `js/src/confix.mjs`, or a browser
+> global). Once published, `npm install @budhash/confix` applies.
+
+**Library:**
+
+```js
+import { apply, parseCommandBlock } from "@budhash/confix"; // ESM
+// const { apply, parseCommandBlock } = require("@budhash/confix"); // CommonJS
+
+apply("environment=dev\n#debug=false\n", ["environment=prod", ">debug", ">workers=4"]);
+// => "environment=prod\ndebug=false\nworkers=4\n"
+
+apply("gc: 1000\n", ["gc=2001"], { sep: ":" }); // "gc: 2001\n"
+```
+
+- `apply(text, commands, { sep = "=", comment = "#" }) → string` — apply the
+  commands (same grammar as above) to `text` and return the new text.
+- `parseCommandBlock(block, comment = "#") → string[]` — split an `-e`-style
+  block into commands, skipping blanks and comment lines.
+
+**CLI** (mirrors the bash flags: `-f -o -d -e -s -c -h`, stdin/stdout):
+
+```sh
+npx @budhash/confix -f app.properties "environment=prod" ">debug"
+cat app.properties | npx @budhash/confix "environment=prod"   # stdin -> stdout
+npx @budhash/confix -d -f app.properties "environment=prod"   # dry-run diff
+```
+
+See [`js/README.md`](js/README.md) for the full library and CLI reference.
+
+## Specification and parity
+
+The behavior of confix is written down once, in [`SPEC.md`](SPEC.md), and pinned
+by a shared, language-agnostic [conformance suite](test/conformance/): each
+fixture's expected output is **generated from the bash script (the oracle)**, and
+both implementations must reproduce it byte-for-byte. The bash script and the
+JavaScript port run the *same* fixtures in CI (on GNU and BSD sed for bash), and
+the Node CLI is additionally checked against the bash CLI by byte-for-byte parity
+tests. So the two can never silently drift — if they disagree, the bash script
+wins.
+
 ## Limitations
-* Only tested on Mac (Sierra and above) and Ubuntu 
+* The bash script is tested on macOS (Sierra and above) and Ubuntu; the
+  JavaScript library and CLI are cross-platform (any Node ≥ 14, and the browser).
 
 ## Known Issues
 * See [confix issues on GitHub](https://github.com/budhash/confix/issues) for open issues
