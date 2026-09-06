@@ -1,0 +1,11 @@
+{
+  "name": "update-existing-key",
+  "desc": "plain key=value updates an active key in place",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "environment=prod"
+  ],
+  "input": "environment=dev\n",
+  "expected": "environment=prod\n"
+}

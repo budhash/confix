@@ -1,0 +1,11 @@
+{
+  "name": "update-custom-separator-colon",
+  "desc": "colon-separated file: command still splits on =, file separator is :",
+  "sep": ":",
+  "comment": "#",
+  "commands": [
+    "gc_warn_threshold_in_ms=2001"
+  ],
+  "input": "gc_warn_threshold_in_ms: 1000\n",
+  "expected": "gc_warn_threshold_in_ms: 2001\n"
+}

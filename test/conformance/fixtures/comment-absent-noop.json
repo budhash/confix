@@ -1,0 +1,11 @@
+{
+  "name": "comment-absent-noop",
+  "desc": "<key is a no-op when the key is absent",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "<a"
+  ],
+  "input": "b=2\n",
+  "expected": "b=2\n"
+}

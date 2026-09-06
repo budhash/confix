@@ -1,0 +1,11 @@
+{
+  "name": "add-to-empty-file",
+  "desc": "appending a key to an empty file",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">a=1"
+  ],
+  "input": "",
+  "expected": "a=1\n"
+}

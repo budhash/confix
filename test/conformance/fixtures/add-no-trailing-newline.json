@@ -1,0 +1,11 @@
+{
+  "name": "add-no-trailing-newline",
+  "desc": "appending to a file with no trailing newline keeps the key on its own line",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">brand.new=hello"
+  ],
+  "input": "existing=1",
+  "expected": "existing=1\nbrand.new=hello\n"
+}

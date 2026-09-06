@@ -1,0 +1,11 @@
+{
+  "name": "uncomment-strips-leading-blanks",
+  "desc": "uncomment removes the comment char and the blanks it introduced",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    ">a"
+  ],
+  "input": "  #a=1\n",
+  "expected": "a=1\n"
+}

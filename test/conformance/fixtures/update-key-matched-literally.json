@@ -1,0 +1,11 @@
+{
+  "name": "update-key-matched-literally",
+  "desc": "keys are matched literally, so a.b does not also match axb",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a.b=w"
+  ],
+  "input": "a.b=v\naxb=keep\n",
+  "expected": "a.b=w\naxb=keep\n"
+}

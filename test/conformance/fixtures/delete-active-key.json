@@ -1,0 +1,11 @@
+{
+  "name": "delete-active-key",
+  "desc": "!key removes an active key's line entirely",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "!b"
+  ],
+  "input": "a=1\nb=2\nc=3\n",
+  "expected": "a=1\nc=3\n"
+}

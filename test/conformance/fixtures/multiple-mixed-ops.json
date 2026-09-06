@@ -1,0 +1,14 @@
+{
+  "name": "multiple-mixed-ops",
+  "desc": "a batch of update, uncomment, comment and delete applied in order",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "a=9",
+    ">c",
+    "<b",
+    "!d"
+  ],
+  "input": "a=1\nb=2\n#c=3\nd=4\n",
+  "expected": "a=9\n#b=2\nc=3\n"
+}

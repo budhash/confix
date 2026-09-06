@@ -1,0 +1,11 @@
+{
+  "name": "delete-literal-key-not-regex",
+  "desc": "!key matches the key literally, not as a regex",
+  "sep": "=",
+  "comment": "#",
+  "commands": [
+    "!a.b[0]"
+  ],
+  "input": "a.b[0]=v\naxb=keep\n",
+  "expected": "axb=keep\n"
+}

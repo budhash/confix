@@ -31,3 +31,8 @@ jobs:
 
       - name: run test suite
         run: ./test/run-tests.sh -n
+
+      - name: run conformance suite (bash oracle)
+        # the shared fixtures whose `expected` is generated from this script;
+        # runs on both GNU sed (linux) and BSD sed (macos) to catch drift
+        run: ./test/conformance/run-bash.sh
