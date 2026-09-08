@@ -101,10 +101,17 @@
   }
   @media (max-width: 560px) {
     .card { padding: 16px 16px; }
-    header { padding-right: 84px; }
     pre.code { font-size: 12px; }
     /* keep the verbose command hint from crowding its label */
     .lbl .hint { flex-basis: 100%; }
+    /* header: let the description use the full width. put the top links in
+       normal flow (a right-aligned row) instead of reserving a padding gutter */
+    header { padding-right: 0; }
+    .top-links { position: static; display: flex; justify-content: flex-end; margin-bottom: 16px; }
+    /* the eyebrow gets full width now, so ease the tracking and drop the
+       leading hairline that reads as clutter next to wrapped text */
+    .eyebrow { letter-spacing: 0.12em; }
+    .eyebrow::before { display: none; }
   }
 </style>
 </head>
