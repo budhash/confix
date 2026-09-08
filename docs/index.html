@@ -76,9 +76,12 @@
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-  .lbl { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; column-gap: 10px; }
+  .lbl { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; column-gap: 10px; min-height: 26px; }
   .lbl .label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-dimmer); }
   .lbl .hint { font-family: var(--mono); font-size: 10.5px; color: var(--paper-dimmer); }
+  /* per-column action toolbars: input actions under the input, output actions under the output */
+  .col-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
+  .col-actions.end { justify-content: flex-end; }
   .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--elev); }
   textarea, .out { width: 100%; color: var(--paper); border-radius: 12px; padding: 14px 16px; font-family: var(--mono); font-size: 14px; line-height: 1.55; resize: none; }
   textarea { background: var(--surface); border: 1px solid var(--rule); }
@@ -172,16 +175,6 @@ npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
   <div class="controls">
     <div class="ctl"><label for="sep">separator</label><input id="sep" value="=" maxlength="3" spellcheck="false"></div>
     <div class="ctl"><label for="comment">comment</label><input id="comment" value="#" maxlength="3" spellcheck="false"></div>
-    <button type="button" id="sample">try a sample</button>
-    <button type="button" id="clear">clear</button>
-    <button type="button" id="loadFile">load file</button>
-    <input id="fileInput" type="file" hidden>
-    <div class="spacer"></div>
-    <button type="button" id="download">download</button>
-    <div class="seg" role="group" aria-label="view">
-      <button type="button" id="viewResult" class="on">result</button>
-      <button type="button" id="viewDiff">diff</button>
-    </div>
   </div>
 
   <div class="grid">
@@ -190,10 +183,25 @@ npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
       <textarea id="config" spellcheck="false" autocomplete="off" placeholder="host=localhost&#10;port=8080&#10;#debug=false"></textarea>
       <div class="lbl"><span class="label">commands</span><span class="hint">one per line · key=val · &gt;key · &gt;key=val · &lt;key · !key</span></div>
       <textarea id="commands" spellcheck="false" autocomplete="off" placeholder="port=9090&#10;&gt;debug=true&#10;&lt;log.level&#10;!obsolete"></textarea>
+      <div class="col-actions">
+        <button type="button" id="sample">try a sample</button>
+        <button type="button" id="loadFile">load file</button>
+        <button type="button" id="clear">clear</button>
+        <input id="fileInput" type="file" hidden>
+      </div>
     </div>
     <div class="col">
-      <div class="lbl"><span class="label" id="outLabel">output</span><span class="hint" id="outHint">edited config</span></div>
+      <div class="lbl">
+        <span class="label" id="outLabel">output</span>
+        <div class="seg" role="group" aria-label="view">
+          <button type="button" id="viewResult" class="on">result</button>
+          <button type="button" id="viewDiff">diff</button>
+        </div>
+      </div>
       <div id="out" class="out panel" aria-live="polite"></div>
+      <div class="col-actions end">
+        <button type="button" id="download">download</button>
+      </div>
     </div>
   </div>
 
@@ -251,7 +259,6 @@ npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
     $("viewResult").classList.toggle("on", v === "result");
     $("viewDiff").classList.toggle("on", v === "diff");
     $("outLabel").textContent = v === "result" ? "output" : "diff";
-    $("outHint").textContent = v === "result" ? "edited config" : "what would change";
     render();
   }
   $("viewResult").addEventListener("click", () => setView("result"));
