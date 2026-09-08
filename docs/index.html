@@ -81,7 +81,6 @@
   .lbl .hint { font-family: var(--mono); font-size: 10.5px; color: var(--paper-dimmer); }
   /* per-column action toolbars: input actions under the input, output actions under the output */
   .col-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
-  .col-actions.end { justify-content: flex-end; }
   .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--elev); }
   textarea, .out { width: 100%; color: var(--paper); border-radius: 12px; padding: 14px 16px; font-family: var(--mono); font-size: 14px; line-height: 1.55; resize: none; }
   textarea { background: var(--surface); border: 1px solid var(--rule); }
@@ -206,7 +205,7 @@ npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
         </div>
       </div>
       <div id="out" class="out panel" aria-live="polite"></div>
-      <div class="col-actions end">
+      <div class="col-actions">
         <button type="button" id="download">download</button>
       </div>
     </div>
