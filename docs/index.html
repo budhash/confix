@@ -316,17 +316,35 @@ npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
     }
     setTimeout(() => { btn.textContent = "copy"; }, 1200);
   });
-  $("download").addEventListener("click", () => {
-    const blob = new Blob([currentResult()], { type: "text/plain" });
+  // save the output: use the native "Save As" picker where supported
+  // (Chromium desktop), otherwise fall back to a direct download.
+  async function saveText(text, suggestedName) {
+    if (window.showSaveFilePicker && window.isSecureContext) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName,
+          types: [{ description: "Config / text", accept: { "text/plain": [".txt", ".properties", ".conf", ".cfg", ".ini", ".yaml", ".yml", ".env"] } }],
+        });
+        const w = await handle.createWritable();
+        await w.write(text);
+        await w.close();
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") return; // user cancelled the picker
+        // any other error: fall through to the download fallback
+      }
+    }
+    const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = loadedName || "confix-output.txt";
+    a.download = suggestedName;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-  });
+  }
+  $("download").addEventListener("click", () => saveText(currentResult(), loadedName || "confix-output.txt"));
 
   render();
 </script>
