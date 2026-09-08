@@ -206,6 +206,7 @@ npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
       </div>
       <div id="out" class="out panel" aria-live="polite"></div>
       <div class="col-actions">
+        <button type="button" id="copy">copy</button>
         <button type="button" id="download">download</button>
       </div>
     </div>
@@ -289,6 +290,31 @@ npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
     reader.onload = () => { config.value = reader.result; render(); config.focus(); };
     reader.readAsText(file);
     e.target.value = ""; // let the same file be chosen again later
+  });
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    // fallback for non-secure contexts (e.g. file://)
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+  $("copy").addEventListener("click", async () => {
+    const btn = $("copy");
+    try {
+      await copyText(currentResult());
+      btn.textContent = "copied";
+    } catch (_e) {
+      btn.textContent = "press ⌘C";
+    }
+    setTimeout(() => { btn.textContent = "copy"; }, 1200);
   });
   $("download").addEventListener("click", () => {
     const blob = new Blob([currentResult()], { type: "text/plain" });
