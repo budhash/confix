@@ -128,7 +128,45 @@
     <p class="subtitle">A small, dependency-free tool that edits configuration files in place with a tiny command grammar — update, add, comment, uncomment, or delete keys. Ships as a bash script <em>and</em> a zero-dependency JavaScript library + CLI (<span class="inline-code">@budhash/confix</span>), kept identical by a shared spec.</p>
   </header>
 
-  <!-- ── Part 1: the tool ────────────────────────────────────────────── -->
+  <!-- ── Part 1: live demo ───────────────────────────────────────────── -->
+  <div class="section-head"><span class="label">live</span></div>
+  <p class="subtitle" style="margin:0 0 18px">Runs confix's command logic client-side — a JavaScript port of the bash script, validated against its output. Nothing is sent anywhere.</p>
+
+  <div class="controls">
+    <div class="ctl"><label for="sep">separator</label><input id="sep" value="=" maxlength="3" spellcheck="false"></div>
+    <div class="ctl"><label for="comment">comment</label><input id="comment" value="#" maxlength="3" spellcheck="false"></div>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <div class="lbl"><span class="label">config</span><span class="hint">paste your file</span></div>
+      <textarea id="config" spellcheck="false" autocomplete="off" placeholder="host=localhost&#10;port=8080&#10;#debug=false"></textarea>
+      <div class="lbl"><span class="label">commands</span><span class="hint">one per line · key=val · &gt;key · &gt;key=val · &lt;key · !key</span></div>
+      <textarea id="commands" spellcheck="false" autocomplete="off" placeholder="port=9090&#10;&gt;debug=true&#10;&lt;log.level&#10;!obsolete"></textarea>
+      <div class="col-actions">
+        <button type="button" id="sample">sample</button>
+        <button type="button" id="loadFile">load</button>
+        <button type="button" id="clear">clear</button>
+        <input id="fileInput" type="file" hidden>
+      </div>
+    </div>
+    <div class="col">
+      <div class="lbl">
+        <span class="label" id="outLabel">output</span>
+        <div class="seg" role="group" aria-label="view">
+          <button type="button" id="viewResult" class="on">result</button>
+          <button type="button" id="viewDiff">diff</button>
+        </div>
+      </div>
+      <div id="out" class="out panel" aria-live="polite"></div>
+      <div class="col-actions">
+        <button type="button" id="copy">copy</button>
+        <button type="button" id="download">download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Part 2: the tool ────────────────────────────────────────────── -->
   <div class="section-head"><span class="label">tool</span></div>
   <div class="doc-grid">
     <div class="card">
@@ -172,44 +210,6 @@ import { applyBlock } from "@budhash/confix";
 applyBlock(text, "port=9090\n&gt;debug=true\n!obsolete", { sep: "=" });</pre>
     <pre class="code"><span class="c"># CLI — same flags as the script, works on Windows too</span>
 npx @budhash/confix -f app.properties "port=9090" "&gt;debug=true"</pre>
-  </div>
-
-  <!-- ── Part 2: the demo ────────────────────────────────────────────── -->
-  <div class="section-head"><span class="label">playground</span></div>
-  <p class="subtitle" style="margin:0 0 18px">Runs confix's command logic client-side — a JavaScript port of the bash script, validated against its output. Nothing is sent anywhere.</p>
-
-  <div class="controls">
-    <div class="ctl"><label for="sep">separator</label><input id="sep" value="=" maxlength="3" spellcheck="false"></div>
-    <div class="ctl"><label for="comment">comment</label><input id="comment" value="#" maxlength="3" spellcheck="false"></div>
-  </div>
-
-  <div class="grid">
-    <div class="col">
-      <div class="lbl"><span class="label">config</span><span class="hint">paste your file</span></div>
-      <textarea id="config" spellcheck="false" autocomplete="off" placeholder="host=localhost&#10;port=8080&#10;#debug=false"></textarea>
-      <div class="lbl"><span class="label">commands</span><span class="hint">one per line · key=val · &gt;key · &gt;key=val · &lt;key · !key</span></div>
-      <textarea id="commands" spellcheck="false" autocomplete="off" placeholder="port=9090&#10;&gt;debug=true&#10;&lt;log.level&#10;!obsolete"></textarea>
-      <div class="col-actions">
-        <button type="button" id="sample">sample</button>
-        <button type="button" id="loadFile">load</button>
-        <button type="button" id="clear">clear</button>
-        <input id="fileInput" type="file" hidden>
-      </div>
-    </div>
-    <div class="col">
-      <div class="lbl">
-        <span class="label" id="outLabel">output</span>
-        <div class="seg" role="group" aria-label="view">
-          <button type="button" id="viewResult" class="on">result</button>
-          <button type="button" id="viewDiff">diff</button>
-        </div>
-      </div>
-      <div id="out" class="out panel" aria-live="polite"></div>
-      <div class="col-actions">
-        <button type="button" id="copy">copy</button>
-        <button type="button" id="download">download</button>
-      </div>
-    </div>
   </div>
 
   <footer>
