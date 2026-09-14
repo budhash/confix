@@ -102,3 +102,71 @@ jobs:
             --title "confix $GITHUB_REF_NAME" \
             --notes "${{ steps.notes.outputs.notes }}" \
             confix confix.sha256
+
+  # ── homebrew tap (best-effort, ordered last) ───────────────────────────────
+  # publish a script-formula to budhash/homebrew-tools so users can:
+  #   brew install budhash/tools/confix
+  # confix is a bash tool (no GoReleaser), so the formula is generated here and
+  # pushed to the shared tap. this needs a cross-repo token (HOMEBREW_TAP_TOKEN);
+  # the built-in GITHUB_TOKEN can't reach another repo. if it fails, the GitHub
+  # release above and the independent npm release are unaffected.
+  brew:
+    name: update homebrew tap
+    needs: release
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: generate the formula and push it to the tap
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          version="${TAG#v}"
+          url="https://github.com/${REPO}/archive/refs/tags/${TAG}.tar.gz"
+
+          # download the tag tarball and pin its checksum
+          curl -fsSL "$url" -o source.tar.gz
+          sha="$(sha256sum source.tar.gz | cut -d' ' -f1)"
+          echo "url:    $url"
+          echo "sha256: $sha"
+
+          # clone the shared tap (GITHUB_TOKEN cannot reach another repo)
+          git clone --depth 1 "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/budhash/homebrew-tools.git" tap
+          mkdir -p tap/Formula
+
+          # script-formula: install sh/confix from the source tarball as `confix`
+          cat > tap/Formula/confix.rb <<RUBY
+          class Confix < Formula
+            desc "Edit configuration files in place with a tiny command grammar"
+            homepage "https://github.com/budhash/confix"
+            url "${url}"
+            sha256 "${sha}"
+            license "Apache-2.0"
+            version "${version}"
+
+            def install
+              bin.install "sh/confix" => "confix"
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/confix -h")
+            end
+          end
+          RUBY
+
+          echo "----- Formula/confix.rb -----"
+          cat tap/Formula/confix.rb
+
+          cd tap
+          git config user.name "budhash"
+          git config user.email "budhash@gmail.com"
+          git add Formula/confix.rb
+          if git diff --cached --quiet; then
+            echo "formula already up to date; nothing to push"
+            exit 0
+          fi
+          git commit -m "confix ${version}"
+          git push
