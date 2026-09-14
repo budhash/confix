@@ -1,13 +1,18 @@
 # Changelog
 
 All notable changes to confix. The bash script and the `@budhash/confix`
-JavaScript package share a version line and are kept behaviorally identical by a
-shared [SPEC.md](SPEC.md) and [conformance suite](test/conformance/).
+JavaScript package usually share a version line and are kept behaviorally
+identical by a shared [SPEC.md](SPEC.md) and [conformance suite](test/conformance/);
+a change to only one of them (e.g. a distribution-only release) may advance just
+that implementation.
 
 Releases are tagged per channel: `vX.Y.Z` cuts the bash script's GitHub Release;
 `js-vX.Y.Z` publishes the npm package.
 
-## [Unreleased]
+## [2.1.1]
+
+Bash-only release (Homebrew distribution). The `@budhash/confix` npm package is
+unchanged and stays at 2.1.0.
 
 ### Added
 - **Homebrew install**: `brew install budhash/tools/confix`. Each tagged `v*`
