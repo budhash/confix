@@ -38,7 +38,11 @@ See Usage and Examples for more details.
 
 ## Installing
 
-Download the latest released `confix` (branch-independent, always the most recent tag):
+With [Homebrew](https://brew.sh) (macOS / Linux):
+
+    brew install budhash/tools/confix
+
+Or download the latest released `confix` (branch-independent, always the most recent tag):
 
     curl -kL https://github.com/budhash/confix/releases/latest/download/confix > confix; chmod +x confix
 

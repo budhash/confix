@@ -7,6 +7,16 @@ shared [SPEC.md](SPEC.md) and [conformance suite](test/conformance/).
 Releases are tagged per channel: `vX.Y.Z` cuts the bash script's GitHub Release;
 `js-vX.Y.Z` publishes the npm package.
 
+## [Unreleased]
+
+### Added
+- **Homebrew install**: `brew install budhash/tools/confix`. Each tagged `v*`
+  release now generates a script-formula and pushes it to the shared
+  [budhash/homebrew-tools](https://github.com/budhash/homebrew-tools) tap. The
+  step is best-effort and ordered last, so the GitHub release and the (separate)
+  npm release are unaffected if it fails. Requires a `HOMEBREW_TAP_TOKEN` secret
+  on this repo.
+
 ## [2.1.0]
 
 ### Added
