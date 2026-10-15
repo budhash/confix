@@ -67,11 +67,15 @@ jobs:
           cat confix.sha256
 
       - name: collect release notes
-        id: notes
+        # write the notes to a FILE and pass them with --notes-file below.
+        # do NOT interpolate notes into a shell command via ${{ ... }}: the
+        # notes contain a fenced ```curl ... > confix``` block, and inside a
+        # double-quoted --notes "..." the backticks pair up and bash *runs* the
+        # enclosed curl, which 404s and redirects "Not Found" over ./confix -
+        # that placeholder then got uploaded as the asset (broke v1.1..v2.1.1).
         run: |
           previous=$(git tag --sort=-version:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1)
           {
-            echo "notes<<RELEASE_NOTES_EOF"
             echo "## confix ${GITHUB_REF_NAME}"
             echo
             echo '### Install'
@@ -91,8 +95,17 @@ jobs:
             fi
             echo
             echo "Verify the download with \`shasum -a 256 -c confix.sha256\`."
-            echo "RELEASE_NOTES_EOF"
-          } >> "$GITHUB_OUTPUT"
+          } > release-notes.md
+
+      - name: sanity-check the artifact before upload
+        # catch a clobbered/placeholder asset (e.g. a 9-byte "Not Found") before
+        # it is ever published
+        run: |
+          head -1 confix | grep -qx '#!/bin/bash' || {
+            echo "::error file=confix::release artifact is not the confix script (got: $(head -c 40 confix))"
+            exit 1
+          }
+          bash -n confix
 
       - name: create github release
         env:
@@ -100,7 +113,7 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" \
             --title "confix $GITHUB_REF_NAME" \
-            --notes "${{ steps.notes.outputs.notes }}" \
+            --notes-file release-notes.md \
             confix confix.sha256
 
   # ── homebrew tap (best-effort, ordered last) ───────────────────────────────

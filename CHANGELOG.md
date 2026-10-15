@@ -9,6 +9,19 @@ that implementation.
 Releases are tagged per channel: `vX.Y.Z` cuts the bash script's GitHub Release;
 `js-vX.Y.Z` publishes the npm package.
 
+## [Unreleased]
+
+### Fixed
+- **Release asset was a broken placeholder.** The published `confix` asset
+  (`releases/latest/download/confix`) was 9 bytes of "Not Found" on every release
+  through v2.1.1: the release notes were interpolated into the shell via
+  `--notes "${{ ... }}"`, and the fenced ```` ```curl … > confix``` ```` install
+  block's backticks paired up so bash *ran* the enclosed `curl`, which 404'd and
+  redirected "Not Found" over the artifact before upload. Notes now go through
+  `--notes-file` (no shell interpolation) and a pre-upload check rejects a
+  non-script artifact. The live v2.1.1 asset was re-uploaded with the correct
+  script. (Homebrew and the npm package were unaffected — they don't use this asset.)
+
 ## [2.1.1]
 
 Bash-only release (Homebrew distribution). The `@budhash/confix` npm package is
